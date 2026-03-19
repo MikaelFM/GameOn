@@ -3,8 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Home from './pages/Home'
 import Search from './pages/Search'
 import Profile from './pages/Profile'
+import Schedules from './pages/Schedules'
 
-import { Ionicons } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
 
 const Tab = createBottomTabNavigator();
 
@@ -17,8 +18,7 @@ export default function Routes () {
                 tabBarInactiveTintColor: 'gray',
                 tabBarStyle: {
                     position: 'absolute',
-                    borderTopWidth: 0,
-                    elevation: 0
+                    paddingTop: 10
                 }
             }}
         >
@@ -28,7 +28,7 @@ export default function Routes () {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, size, focused}) => {
-                        return <Ionicons name="home" size={size} color={color}></Ionicons>
+                        return <Feather name="home" size={size} color={color}></Feather>
                     }
                 }}
             />
@@ -38,7 +38,17 @@ export default function Routes () {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, size, focused}) => {
-                        return <Ionicons name="search" size={size} color={color}></Ionicons>
+                        return <Feather name="search" size={size} color={color}></Feather>
+                    }
+                }}
+            />
+            <Tab.Screen
+                name='schedules'
+                component={Schedules}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({color, size, focused}) => {
+                        return <Feather name="calendar" size={size} color={color}></Feather>
                     }
                 }}
             />
@@ -48,7 +58,7 @@ export default function Routes () {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, size, focused}) => {
-                        return <Ionicons name="person" size={size} color={color}></Ionicons>
+                        return <Feather name="user" size={size} color={color}></Feather>
                     }
                 }}
             />
