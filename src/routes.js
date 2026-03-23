@@ -5,8 +5,9 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
+import Schedules from "./pages/Schedules";
 
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -20,8 +21,7 @@ function TabRoutes() {
         tabBarInactiveTintColor: "gray",
         tabBarStyle: {
           position: "absolute",
-          borderTopWidth: 0,
-          elevation: 0,
+          paddingTop: 10,
         },
       }}
     >
@@ -31,7 +31,7 @@ function TabRoutes() {
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
-            return <Ionicons name="home" size={size} color={color}></Ionicons>;
+            return <Feather name="home" size={size} color={color}></Feather>;
           },
         }}
       />
@@ -41,8 +41,18 @@ function TabRoutes() {
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
+            return <Feather name="search" size={size} color={color}></Feather>;
+          },
+        }}
+      />
+      <Tab.Screen
+        name="schedules"
+        component={Schedules}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => {
             return (
-              <Ionicons name="search" size={size} color={color}></Ionicons>
+              <Feather name="calendar" size={size} color={color}></Feather>
             );
           },
         }}
@@ -53,9 +63,7 @@ function TabRoutes() {
         options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
-            return (
-              <Ionicons name="person" size={size} color={color}></Ionicons>
-            );
+            return <Feather name="user" size={size} color={color}></Feather>;
           },
         }}
       />
