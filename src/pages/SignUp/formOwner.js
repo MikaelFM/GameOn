@@ -18,7 +18,7 @@ import { Picker } from "@react-native-picker/picker";
 export default function Cadastro() {
   const navigation = useNavigation();
   const route = useRoute();
-  const userType = route.params?.userType || "owner"; // valor padrão "owner"
+  const ownerId = route.params?.ownerId;
   const [nome, setNome] = useState("");
   const [selectedSport, setSelectedSport] = useState();
   const [valor, setValor] = useState("");
@@ -38,7 +38,7 @@ export default function Cadastro() {
 
     // Dados a serem enviados para a API
     const dadosQuadra = {
-      userType, // Incluindo o tipo de usuário
+      ownerId,
       nome,
       esporte: selectedSport,
       valor: parseFloat(valor),

@@ -6,6 +6,9 @@ import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Profile from "./pages/Profile";
 import Schedules from "./pages/Schedules";
+import Options from "./pages/SignUp/options";
+import FormUser from "./pages/SignUp/formUser";
+import FormOwner from "./pages/SignUp/formOwner";
 
 import { Feather } from "@expo/vector-icons";
 
@@ -75,6 +78,9 @@ export default function Routes() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="login" component={Login} />
+      <Stack.Screen name="options" component={Options} />
+      <Stack.Screen name="formUser" component={FormUser} />
+      <Stack.Screen name="formOwner" component={FormOwner} />
       <Stack.Screen name="tabs" component={TabRoutes} />
     </Stack.Navigator>
   );

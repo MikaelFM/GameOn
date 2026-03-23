@@ -12,7 +12,7 @@ export default function Cadastro() {
   };
 
   const handleLocatario = () => {
-    navigation.navigate("formOwner", { userType: "owner" });
+    navigation.navigate("formUser", { userType: "owner" });
   };
 
   return (

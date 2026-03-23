@@ -17,7 +17,7 @@ import { Button } from "../../components/Button";
 export default function Cadastro() {
   const navigation = useNavigation();
   const route = useRoute();
-  const userType = route.params?.userType || "user"; // valor padrão "user"
+  const userType = route.params?.userType;
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,6 +51,8 @@ export default function Cadastro() {
       nome,
       email,
       password,
+      // TODO: Se userType === "owner", incluir campo para ligar à quadra (ex: quadraId)
+      // quadraId: userType === "owner" ? algumId : null,
     };
 
     // TODO: Implementar envio para API quando rotas estiverem definidas
@@ -75,9 +77,16 @@ export default function Cadastro() {
     //   Alert.alert("Erro", "Erro de conexão. Tente novamente.");
     // }
 
-    // Por enquanto, apenas navega para Home
+    // Por enquanto, simula um ID retornado pela API
     setLoading(false);
-    navigation.navigate("Home");
+
+    if (userType === "owner") {
+      // Owner precisa cadastrar a quadra depois
+      const ownerId = "1234"; // TODO: usar ID real retornado pela API
+      navigation.navigate("formOwner", { ownerId });
+    } else {
+      navigation.replace("tabs");
+    }
   };
 
   return (

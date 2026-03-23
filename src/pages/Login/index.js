@@ -34,7 +34,7 @@ export default function Login() {
 
     // if (result.success) {
     //   Alert.alert("Sucesso", result.message);
-    navigation.replace("tabs");
+    navigation.replace("options");
     // } else {
     //   Alert.alert("Erro", result.message);
     // }
@@ -86,7 +86,7 @@ export default function Login() {
                 marginTop: 20,
                 fontWeight: "bold",
               }}
-              onPress={() => navigation.navigate("cadastro")}
+              onPress={() => navigation.navigate("options")}
             >
               Cadastre-se
             </Text>
