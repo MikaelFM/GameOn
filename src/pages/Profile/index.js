@@ -8,10 +8,18 @@ import {
   SafeAreaView 
 } from 'react-native';
 
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
 import { ProfileMenuOption } from '../../components/ProfileMenuOption';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
+
+  const handleSair = () => {
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: "login" }] })
+    );
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -50,7 +58,7 @@ export default function ProfileScreen() {
           <ProfileMenuOption 
             icon="log-out-outline" 
             title="Sair" 
-            onPress={() => {}} 
+            onPress={handleSair} 
             isLast
           />
         </View>

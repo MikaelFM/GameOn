@@ -1,5 +1,4 @@
 import {
-  Image,
   Text,
   View,
   StyleSheet,
@@ -8,72 +7,73 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+
 import { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
-import { Picker } from "@react-native-picker/picker";
+import { TimePicker } from "../../components/TimePicker";
+import { SportCheckboxGroup } from "../../components/SportCheckboxGroup";
+import { COLORS } from "../../constants/colors";
+
+const dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
 
 export default function Cadastro() {
   const navigation = useNavigation();
   const route = useRoute();
   const ownerId = route.params?.ownerId;
   const [nome, setNome] = useState("");
-  const [selectedSport, setSelectedSport] = useState();
+  const [selectedSports, setSelectedSports] = useState([]);
   const [valor, setValor] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [horaAbertura, setHoraAbertura] = useState("08:00");
-  const [horaFechamento, setHoraFechamento] = useState("18:00");
+  const [horariosPorDia, setHorariosPorDia] = useState({
+    Seg: { abertura: "08:00", fechamento: "18:00" },
+    Ter: { abertura: "08:00", fechamento: "18:00" },
+    Qua: { abertura: "08:00", fechamento: "18:00" },
+    Qui: { abertura: "08:00", fechamento: "18:00" },
+    Sex: { abertura: "08:00", fechamento: "18:00" },
+    Sab: { abertura: "08:00", fechamento: "18:00" },
+    Dom: { abertura: "08:00", fechamento: "18:00" },
+  });
   const [loading, setLoading] = useState(false);
-  //implementar depois a autenticação com o backend, usando o useAuth para
-  // gerenciar o estado de autenticação do usuário.
-  // const { isLoggedIn, user } = useAuth();
+
+  const toggleSport = (sport) => {
+    setSelectedSports((prev) =>
+      prev.includes(sport) ? prev.filter((s) => s !== sport) : [...prev, sport],
+    );
+  };
 
   const handleCadastro = async () => {
-    if (!nome || !selectedSport || !valor || !descricao || !horaAbertura || !horaFechamento) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+    if (!nome || selectedSports.length === 0 || !valor || !descricao) {
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos e selecione ao menos um esporte.",
+      );
       return;
     }
 
-    // Dados a serem enviados para a API
     const dadosQuadra = {
       ownerId,
       nome,
-      esporte: selectedSport,
+      esportes: selectedSports,
       valor: parseFloat(valor),
       descricao,
-      horaAbertura,
-      horaFechamento,
+      horarios: horariosPorDia,
     };
 
-    // TODO: Implementar envio para API quando rotas estiverem definidas
-    // try {
-    //   const response = await fetch('https://api.gameon.com/quadras', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(dadosQuadra),
-    //   });
-    //   const result = await response.json();
-    //   if (response.ok) {
-    //     Alert.alert("Sucesso", "Quadra cadastrada com sucesso!");
-    //     navigation.navigate("algumaTela");
-    //   } else {
-    //     Alert.alert("Erro", result.message || "Erro ao cadastrar quadra.");
-    //   }
-    // } catch (error) {
-    //   Alert.alert("Erro", "Erro de conexão. Tente novamente.");
-    // }
-
-    // Por enquanto, apenas navega
+    // TODO: Implementar envio para API
+    console.log("=== DADOS DA QUADRA ===");
+    console.log(JSON.stringify(dadosQuadra, null, 2));
     navigation.replace("tabs");
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{
+        flex: 1,
+        marginTop: Platform.OS === "android" ? 80 : 0,
+        marginBottom: Platform.OS === "android" ? 80 : 0,
+      }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
@@ -85,63 +85,76 @@ export default function Cadastro() {
       >
         <View style={styles.container}>
           <View style={styles.container_inputs}>
-            <Text style={styles.login}>Cadastro</Text>
+            <Text style={styles.cadastro}>Cadastro</Text>
             <Input
-              placeholder="Nome da Empresa"
-              value={email}
+              placeholder="Insira o nome da empresa"
+              value={nome}
               onChangeText={setNome}
             />
-            <Picker
-              selectedValue={selectedSport}
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedSport(itemValue)
-              }
-            >
-              <Picker.Item label="Futebol" value="futebol" />
-              <Picker.Item label="Vôlei" value="volei" />
-              <Picker.Item label="Basquete" value="basquete" />
-              <Picker.Item label="Futsal" value="futsal" />
-              <Picker.Item label="Tênis" value="tenis" />
-              <Picker.Item label="Beach Tênis" value="beach_tenis" />
-              <Picker.Item label="Handebol" value="handebol" />
-              <Picker.Item label="Outros" value="outros" />
-            </Picker>
+
             <Input
-              placeholder="Valor do aluguel (por hora)"
+              placeholder="Insira o valor do aluguel (por hora)"
               value={valor}
               onChangeText={setValor}
               keyboardType="numeric"
             />
             <Input
-              placeholder="Descrição do espaço"
+              placeholder="Insira a descrição do espaço"
               value={descricao}
               onChangeText={setDescricao}
             />
-            <Text style={{ fontSize: 16, marginTop: 20 }}>Horário de Abertura</Text>
-            <Picker
-              selectedValue={horaAbertura}
-              onValueChange={(itemValue) => setHoraAbertura(itemValue)}
-              style={styles.picker}
-            >
-              {Array.from({ length: 18 }, (_, i) => {
-                const hour = (i + 6).toString().padStart(2, '0') + ':00';
-                return <Picker.Item key={hour} label={hour} value={hour} />;
-              })}
-            </Picker>
-            <Text style={{ fontSize: 16, marginTop: 20 }}>Horário de Fechamento</Text>
-            <Picker
-              selectedValue={horaFechamento}
-              onValueChange={(itemValue) => setHoraFechamento(itemValue)}
-              style={styles.picker}
-            >
-              {Array.from({ length: 18 }, (_, i) => {
-                const hour = (i + 6).toString().padStart(2, '0') + ':00';
-                return <Picker.Item key={hour} label={hour} value={hour} />;
-              })}
-            </Picker>
 
-          <Button label={"Cancelar"} onPress={() => navigation.goBack()} disabled={loading} />
-          <Button label={"Próximo"} onPress={handleCadastro} disabled={loading} />
+            <Text style={styles.sectionLabel}>Esportes disponíveis</Text>
+            <SportCheckboxGroup
+              selected={selectedSports}
+              onToggle={toggleSport}
+            />
+
+            <Text style={styles.sectionLabel}>Horários por dia</Text>
+            <View style={styles.horarioHeader}>
+              <Text style={{ width: 50 }}></Text>
+              <Text style={styles.horarioColLabel}>Abertura</Text>
+              <Text style={styles.horarioColLabel}>Fechamento</Text>
+            </View>
+
+            {dias.map((dia) => (
+              <View key={dia} style={styles.horarioRow}>
+                <Text style={styles.diaLabel}>{dia}</Text>
+                <TimePicker
+                  selectedValue={horariosPorDia[dia].abertura}
+                  onValueChange={(val) =>
+                    setHorariosPorDia((prev) => ({
+                      ...prev,
+                      [dia]: { ...prev[dia], abertura: val },
+                    }))
+                  }
+                />
+                <TimePicker
+                  selectedValue={horariosPorDia[dia].fechamento}
+                  onValueChange={(val) =>
+                    setHorariosPorDia((prev) => ({
+                      ...prev,
+                      [dia]: { ...prev[dia], fechamento: val },
+                    }))
+                  }
+                />
+              </View>
+            ))}
+
+            <View style={styles.container_buttons}>
+              <Button
+                label={"Cancelar"}
+                type={"cancel"}
+                onPress={() => navigation.goBack()}
+                disabled={loading}
+              />
+              <Button
+                label={"Salvar"}
+                onPress={handleCadastro}
+                disabled={loading}
+              />
+            </View>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -149,17 +162,10 @@ export default function Cadastro() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
-  },
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
     width: "100%",
   },
   container_inputs: {
@@ -168,21 +174,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   container_buttons: {
-    display: "flex",
-    alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
     gap: 10,
+    width: "50%",
+    marginTop: 20,
   },
-  login: {
-    fontSize: 36,
-    fontFamily: "Montserrat",
-    marginBottom: 30,
-    fontWeight: "bold",
+  cadastro: {
+    fontSize: 32,
+    color: COLORS.textMain,
+    marginBottom: 20,
+    fontWeight: "600",
   },
-  picker: {
+  sectionLabel: {
+    fontSize: 18,
+    marginTop: 20,
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+
+  selectBtn: {
     width: "84%",
     height: 50,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    justifyContent: "center",
+    paddingHorizontal: 15,
     marginVertical: 10,
+    backgroundColor: "#fff",
+  },
+  horarioHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "80%",
+    margin: 5,
+  },
+  horarioColLabel: {
+    flex: 1,
+    textAlign: "left",
+    fontSize: 14,
+    color: "#666",
+  },
+  horarioRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "84%",
+    marginBottom: 8,
+    gap: 8,
+  },
+  diaLabel: {
+    width: 40,
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });

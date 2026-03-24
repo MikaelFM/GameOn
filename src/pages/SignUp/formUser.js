@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
+import { COLORS } from "../../constants/colors";
 
 export default function Cadastro() {
   const navigation = useNavigation();
@@ -47,12 +48,10 @@ export default function Cadastro() {
 
     // Dados a serem enviados para a API
     const dadosUsuario = {
-      userType, // Incluindo o tipo de usuário
+      userType,
       nome,
       email,
       password,
-      // TODO: Se userType === "owner", incluir campo para ligar à quadra (ex: quadraId)
-      // quadraId: userType === "owner" ? algumId : null,
     };
 
     // TODO: Implementar envio para API quando rotas estiverem definidas
@@ -104,14 +103,22 @@ export default function Cadastro() {
         <View style={styles.container}>
           <View style={styles.container_inputs}>
             <Image
-              source={require("../../assets/images/gameon_logo1.png")}
-              style={{ width: 200, height: 150, marginBottom: 30 }}
+              source={require("../../assets/images/logo_gameOn.png")}
+              style={{ width: 220, height: 170 }}
             />
-            <Text style={styles.login}>Cadastro</Text>
-            <Input placeholder="Nome" value={nome} onChangeText={setNome} />
-            <Input placeholder="E-mail" value={email} onChangeText={setEmail} />
+            <Text style={styles.cadastro}>Cadastro</Text>
             <Input
-              placeholder="Senha"
+              placeholder="Insira seu nome"
+              value={nome}
+              onChangeText={setNome}
+            />
+            <Input
+              placeholder="Insira seu e-mail"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <Input
+              placeholder="Insira a senha"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={true}
@@ -123,13 +130,19 @@ export default function Cadastro() {
               secureTextEntry={true}
             />
           </View>
-
-          <Button
-            label={"Cancelar"}
-            onPress={() => navigation.goBack()}
-            disabled={loading}
-          />
-          <Button label={"Salvar"} onPress={handleSalvar} disabled={loading} />
+          <View style={styles.container_buttons}>
+            <Button
+              label={"Cancelar"}
+              type={"cancel"}
+              onPress={() => navigation.goBack()}
+              disabled={loading}
+            />
+            <Button
+              label={"Salvar"}
+              onPress={handleSalvar}
+              disabled={loading}
+            />
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -137,13 +150,8 @@ export default function Cadastro() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
   container: {
+    flex: 1,
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -154,6 +162,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 30,
   },
   container_buttons: {
     display: "flex",
@@ -161,11 +170,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 10,
+    width: "50%",
   },
-  login: {
-    fontSize: 36,
-    fontFamily: "Montserrat",
+  cadastro: {
+    fontSize: 26,
+    color: COLORS.textMain,
     marginBottom: 30,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
 });

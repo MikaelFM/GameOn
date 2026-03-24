@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
+import { COLORS } from "../../constants/colors";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -34,7 +35,7 @@ export default function Login() {
 
     // if (result.success) {
     //   Alert.alert("Sucesso", result.message);
-    navigation.replace("options");
+    navigation.replace("tabs");
     // } else {
     //   Alert.alert("Erro", result.message);
     // }
@@ -55,13 +56,17 @@ export default function Login() {
         <View style={styles.container}>
           <View style={styles.container_inputs}>
             <Image
-              source={require("../../assets/images/gameon_logo1.png")}
-              style={{ width: 200, height: 150, marginBottom: 30 }}
+              source={require("../../assets/images/logo_gameOn.png")}
+              style={{ width: 230, height: 190 }}
             />
             <Text style={styles.login}>Login</Text>
-            <Input placeholder="E-mail" value={email} onChangeText={setEmail} />
             <Input
-              placeholder="Senha"
+              placeholder="Insira o e-mail"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <Input
+              placeholder="Insira a senha"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={true}
@@ -98,12 +103,6 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  },
   container: {
     display: "flex",
     justifyContent: "center",
@@ -115,6 +114,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 20,
   },
   container_buttons: {
     display: "flex",
@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   login: {
-    fontSize: 36,
-    fontFamily: "Montserrat",
+    fontSize: 26,
+    color: COLORS.textMain,
     marginBottom: 30,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
 });

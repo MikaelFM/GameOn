@@ -2,6 +2,7 @@ import { Image, Text, View, StyleSheet } from "react-native";
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "../../components/Button";
+import { COLORS } from "../../constants/colors";
 
 export default function Cadastro() {
   const navigation = useNavigation();
@@ -17,20 +18,24 @@ export default function Cadastro() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.container_inputs}>
-        <Image
-          source={require("../../assets/images/gameon_logo1.png")}
-          style={{ width: 200, height: 150, marginBottom: 30 }}
-        />
-        <Text style={styles.login}>Cadastro</Text>
-      </View>
-
-      <Button label={"Sou usuário"} onPress={handleUsuario} disabled={loading} />
-      <Button
-        label={"Sou locatário"}
-        onPress={handleLocatario}
-        disabled={loading}
+      <Image
+        source={require("../../assets/images/logo_gameOn.png")}
+        style={{ width: 230, height: 190 }}
       />
+      <Text style={styles.cadastro}>Cadastro</Text>
+
+      <View style={styles.container_inputs}>
+        <Button
+          label={"Sou usuário"}
+          onPress={handleUsuario}
+          disabled={loading}
+        />
+        <Button
+          label={"Sou locatário"}
+          onPress={handleLocatario}
+          disabled={loading}
+        />
+      </View>
       <View style={styles.container_buttons}>
         <Text
           style={{
@@ -59,16 +64,17 @@ export default function Cadastro() {
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
     width: "100%",
   },
   container_inputs: {
-    width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    width: "90%",
+    marginBottom: 10,
   },
   container_buttons: {
     display: "flex",
@@ -77,10 +83,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
   },
-  login: {
-    fontSize: 36,
-    fontFamily: "Montserrat",
-    marginBottom: 30,
-    fontWeight: "bold",
+  cadastro: {
+    fontSize: 26,
+    color: COLORS.textMain,
+    marginBottom: 20,
+    fontWeight: "500",
   },
 });
