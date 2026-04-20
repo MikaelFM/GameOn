@@ -8,13 +8,14 @@ import {
   Platform,
 } from "react-native";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { TimePicker } from "../../components/TimePicker";
 import { SportCheckboxGroup } from "../../components/SportCheckboxGroup";
 import { COLORS } from "../../constants/colors";
+import { AuthContext } from "../../contexts/AuthContext";
 
 const dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
 
@@ -36,6 +37,8 @@ export default function Cadastro() {
     Dom: { abertura: "08:00", fechamento: "18:00" },
   });
   const [loading, setLoading] = useState(false);
+
+  const { signIn } = useContext(AuthContext);
 
   const toggleSport = (sport) => {
     setSelectedSports((prev) =>
@@ -64,7 +67,15 @@ export default function Cadastro() {
     // TODO: Implementar envio para API
     console.log("=== DADOS DA QUADRA ===");
     console.log(JSON.stringify(dadosQuadra, null, 2));
-    navigation.replace("tabs");
+
+    signIn({
+      user: {
+        id: ownerId ?? "fake-owner-id",
+        nome: "Owner Teste",
+        role: "owner",
+      },
+      token: "fake-token",
+    });
   };
 
   return (

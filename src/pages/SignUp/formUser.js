@@ -8,12 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { COLORS } from "../../constants/colors";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function Cadastro({
   isEditing = false,
@@ -30,7 +31,8 @@ export default function Cadastro({
   const [loading, setLoading] = useState(false);
   //implementar depois a autenticação com o backend, usando o useAuth para
   // gerenciar o estado de autenticação do usuário.
-  // const { isLoggedIn, user } = useAuth();
+
+  const { signIn } = useContext(AuthContext);
 
   useEffect(() => {
     if (isEditing && userData) {
@@ -130,12 +132,26 @@ export default function Cadastro({
     // Por enquanto, simula um ID retornado pela API
     setLoading(false);
 
+    // if (userType === "owner") {
+    //   navigation.navigate("formOwner", { ownerId: 1234 });
+    // } else {
+    //   signIn({
+    //     user: result.user,
+    //     token: result.token,
+    //   });
+    // }
+
     if (userType === "owner") {
       navigation.navigate("formOwner", { ownerId: 1234 });
     } else {
       signIn({
-        user: result.user,
-        token: result.token,
+        user: {
+          id: "fake-user-id",
+          nome,
+          email,
+          role: "user",
+        },
+        token: "fake-token",
       });
     }
   };
