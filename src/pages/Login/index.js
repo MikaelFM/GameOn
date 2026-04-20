@@ -13,6 +13,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { COLORS } from "../../constants/colors";
+import { AuthContext } from "../../contexts/AuthContext";
+import { useContext } from "react";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -23,21 +25,61 @@ export default function Login() {
   // gerenciar o estado de autenticação do usuário.
   // const { isLoggedIn, user } = useAuth();
 
+  const { signIn } = useContext(AuthContext);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Erro", "Preencha todos os campos.");
       return;
     }
 
-    // setLoading(true);
-    // const result = await login(email, password);
-    // setLoading(false);
+    // try {
+    setLoading(true);
 
-    // if (result.success) {
-    //   Alert.alert("Sucesso", result.message);
-    navigation.replace("tabs");
-    // } else {
-    //   Alert.alert("Erro", result.message);
+    // const response = await api.post("/login", {
+    //   email,
+    //   password,
+    // });
+
+    /**
+     * Esperado do backend:
+     * response.data = {
+     *   user: { id, nome, email, role },
+     *   token: "jwt_token"
+     * }
+     */
+
+    if (email === "dono@gmail.com") {
+      signIn({
+        user: {
+          id: "1",
+          nome: "Owner Teste",
+          email,
+          role: "owner",
+        },
+        token: "fake-token-owner",
+      });
+      return;
+    }
+
+    if (email === "usuario@gmail.com") {
+      signIn({
+        user: {
+          id: "2",
+          nome: "User Teste",
+          email,
+          role: "user",
+        },
+        token: "fake-token-user",
+      });
+      return;
+    }
+
+    //
+    // } catch (error) {
+    //   Alert.alert("Erro", "Email ou senha inválidos.");
+    // } finally {
+    //   setLoading(false);
     // }
   };
 

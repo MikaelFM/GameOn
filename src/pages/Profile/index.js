@@ -1,37 +1,67 @@
-import React from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Image, 
-  SafeAreaView 
-} from 'react-native';
+import React, { useContext, useEffect, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  Modal,
+} from "react-native";
 
-import { useNavigation, CommonActions } from '@react-navigation/native';
-import { COLORS } from '../../constants/colors';
-import { ProfileMenuOption } from '../../components/ProfileMenuOption';
+import { useNavigation, CommonActions } from "@react-navigation/native";
+import { COLORS } from "../../constants/colors";
+import { ProfileMenuOption } from "../../components/ProfileMenuOption";
+import { Button } from "../../components/Button";
+import { AuthContext } from "../../contexts/AuthContext";
+import Cadastro from "../SignUp/formUser";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const [userData, setUserData] = useState(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const { signOut } = useContext(AuthContext);
+
+  const handleEditPress = () => {
+    setEditModalVisible(true);
+  };
+  const handleCloseModal = () => {
+    setEditModalVisible(false);
+  };
 
   const handleSair = () => {
-    navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: "login" }] })
-    );
+    signOut();
   };
+
+  useEffect(() => {
+    // fetch('https://api.gameon.com/user/profile')
+    // .then(res => res.json())
+    // .then(data => setUserData(data));
+
+    // Simulação de dados retornados:
+    setUserData({
+      nome: "Fulano de Tal",
+      email: "fulano.tal@gmail.com",
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.profileHeader}>
-          <Image 
-            source={{ uri: 'https://avatar.iran.liara.run/public/boy?username=Fulano' }} 
-            style={styles.avatar} 
+          <Image
+            source={{
+              uri: "https://avatar.iran.liara.run/public/boy?username=Fulano",
+            }}
+            style={styles.avatar}
           />
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>Fulano de Tal</Text>
             <Text style={styles.userEmail}>fulano.tal@gmail.com</Text>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditPress}
+            >
               <Text style={styles.editButtonText}>Editar Perfil</Text>
             </TouchableOpacity>
           </View>
@@ -40,30 +70,37 @@ export default function ProfileScreen() {
         <View style={styles.divider} />
 
         <View style={styles.menuContainer}>
-          <ProfileMenuOption 
-            icon="time-outline" 
-            title="Histórico" 
-            onPress={() => {}} 
+          <ProfileMenuOption
+            icon="time-outline"
+            title="Histórico"
+            onPress={() => {}}
           />
-          <ProfileMenuOption 
-            icon="document-text-outline" 
-            title="Termos de Uso" 
-            onPress={() => {}} 
+          <ProfileMenuOption
+            icon="document-text-outline"
+            title="Termos de Uso"
+            onPress={() => {}}
           />
-          <ProfileMenuOption 
-            icon="help-circle-outline" 
-            title="Ajuda" 
-            onPress={() => {}} 
+          <ProfileMenuOption
+            icon="help-circle-outline"
+            title="Ajuda"
+            onPress={() => {}}
           />
-          <ProfileMenuOption 
-            icon="log-out-outline" 
-            title="Sair" 
-            onPress={handleSair} 
+          <ProfileMenuOption
+            icon="log-out-outline"
+            title="Sair"
+            onPress={handleSair}
             isLast
           />
         </View>
-
       </View>
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleCloseModal}
+      >
+        <Cadastro isEditing userData={userData} onClose={handleCloseModal} />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -80,13 +117,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.textMain,
     marginBottom: 25,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   avatar: {
@@ -101,7 +138,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.textMain,
   },
   userEmail: {
@@ -113,16 +150,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     height: 36,
     borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 10,
     marginTop: 10,
-    width: 100
+    width: 100,
   },
   editButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   divider: {
     height: 1,
@@ -135,6 +172,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 25,
     borderColor: COLORS.border,
-    overflow: 'hidden',
-  }
+    overflow: "hidden",
+  },
 });

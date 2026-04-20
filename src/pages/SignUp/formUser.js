@@ -8,14 +8,18 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { COLORS } from "../../constants/colors";
 
-export default function Cadastro() {
+export default function Cadastro({
+  isEditing = false,
+  userData = null,
+  onClose,
+}) {
   const navigation = useNavigation();
   const route = useRoute();
   const userType = route.params?.userType;
@@ -28,23 +32,45 @@ export default function Cadastro() {
   // gerenciar o estado de autenticação do usuário.
   // const { isLoggedIn, user } = useAuth();
 
+  useEffect(() => {
+    if (isEditing && userData) {
+      setNome(userData.nome);
+      setEmail(userData.email);
+    }
+  }, []);
+
+  const handleCancel = () => {
+    if (isEditing) {
+      onClose(); // fecha modal
+    } else {
+      navigation.goBack(); // volta no stack
+    }
+  };
+
   const handleSalvar = async () => {
-    if (!nome || !email || !password || !confirmPassword) {
-      Alert.alert("Erro", "Preencha todos os campos.");
-      return;
-    }
+    if (isEditing) {
+      // depois: PUT no backend
+      onClose();
+    } else {
+      // cadastro normal
 
-    if (password !== confirmPassword) {
-      Alert.alert("Erro", "As senhas não conferem.");
-      return;
-    }
+      if (!nome || !email || !password || !confirmPassword) {
+        Alert.alert("Erro", "Preencha todos os campos.");
+        return;
+      }
 
-    if (password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter no mínimo 6 caracteres.");
-      return;
-    }
+      if (password !== confirmPassword) {
+        Alert.alert("Erro", "As senhas não conferem.");
+        return;
+      }
 
-    setLoading(true);
+      if (password.length < 6) {
+        Alert.alert("Erro", "A senha deve ter no mínimo 6 caracteres.");
+        return;
+      }
+
+      setLoading(true);
+    }
 
     // Dados a serem enviados para a API
     const dadosUsuario = {
@@ -52,39 +78,65 @@ export default function Cadastro() {
       nome,
       email,
       password,
+      role: userType,
     };
 
     // TODO: Implementar envio para API quando rotas estiverem definidas
     // try {
-    //   const response = await fetch('https://api.gameon.com/users/register', {
-    //     method: 'POST',
+    //   const url = isEditing
+    //     ? `https://api.gameon.com/users/${route.params?.userData?.id}`
+    //     : "https://api.gameon.com/users/register";
+
+    //   const metodo = isEditing ? "PUT" : "POST";
+
+    //   const response = await fetch(url, {
+    //     method: metodo,
     //     headers: {
-    //       'Content-Type': 'application/json',
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
     //     },
     //     body: JSON.stringify(dadosUsuario),
     //   });
+
     //   const result = await response.json();
     //   setLoading(false);
+
     //   if (response.ok) {
-    //     Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-    //     navigation.navigate("Home");
+    //     Alert.alert(
+    //       "Sucesso",
+    //       isEditing
+    //         ? "Perfil atualizado com sucesso!"
+    //         : "Cadastro realizado com sucesso!",
+    //     );
+
+    //     if (isEditing) {
+    //       navigation.goBack(); // Volta para a tela de perfil
+    //     } else {
+    //       if (userType === "owner") {
+    //         navigation.navigate("formOwner", { ownerId: result.id });
+    //       } else {
+    //         navigation.replace("tabs");
+    //       }
+    //     }
     //   } else {
-    //     Alert.alert("Erro", result.message || "Erro ao realizar cadastro.");
+    //     Alert.alert("Erro", result.message || "Ocorreu um erro na operação.");
     //   }
     // } catch (error) {
     //   setLoading(false);
-    //   Alert.alert("Erro", "Erro de conexão. Tente novamente.");
+    //   Alert.alert("Erro", "Erro de conexão. Verifique sua internet.");
+    //   console.error(error);
     // }
 
     // Por enquanto, simula um ID retornado pela API
     setLoading(false);
 
     if (userType === "owner") {
-      // Owner precisa cadastrar a quadra depois
-      const ownerId = "1234"; // TODO: usar ID real retornado pela API
-      navigation.navigate("formOwner", { ownerId });
+      navigation.navigate("formOwner", { ownerId: 1234 });
     } else {
-      navigation.replace("tabs");
+      signIn({
+        user: result.user,
+        token: result.token,
+      });
     }
   };
 
@@ -106,7 +158,9 @@ export default function Cadastro() {
               source={require("../../assets/images/logo_gameOn.png")}
               style={{ width: 220, height: 170 }}
             />
-            <Text style={styles.cadastro}>Cadastro</Text>
+            <Text style={styles.cadastro}>
+              {isEditing ? "Editar Perfil" : "Cadastro"}
+            </Text>
             <Input
               placeholder="Insira seu nome"
               value={nome}
@@ -134,7 +188,7 @@ export default function Cadastro() {
             <Button
               label={"Cancelar"}
               type={"cancel"}
-              onPress={() => navigation.goBack()}
+              onPress={handleCancel}
               disabled={loading}
             />
             <Button
