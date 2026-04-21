@@ -3,7 +3,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -15,72 +14,72 @@ import { Button } from "../../components/Button";
 import { COLORS } from "../../constants/colors";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useContext } from "react";
+import { loginLocador, loginLocatario } from "../../services/loginService";
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   //implementar depois a autenticação com o backend, usando o useAuth para
   // gerenciar o estado de autenticação do usuário.
   // const { isLoggedIn, user } = useAuth();
 
   const { signIn } = useContext(AuthContext);
 
+  const resolveApiErrorMessage = (error) => {
+    return (
+      error?.data?.erro ||
+      error?.data?.mensagem ||
+      error?.data?.message ||
+      error?.message ||
+      "Email ou senha invalidos."
+    );
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      setErrorMessage("Preencha todos os campos.");
       return;
     }
 
-    // try {
-    setLoading(true);
+    try {
+      setLoading(true);
+      setErrorMessage("");
 
-    // const response = await api.post("/login", {
-    //   email,
-    //   password,
-    // });
+      let authResponse;
 
-    /**
-     * Esperado do backend:
-     * response.data = {
-     *   user: { id, nome, email, role },
-     *   token: "jwt_token"
-     * }
-     */
+      try {
+        authResponse = await loginLocador({ email, senha: password });
+      } catch (firstError) {
+        const canTryLocatario =
+          firstError?.status === 401 ||
+          firstError?.status === 403 ||
+          firstError?.status === 404;
 
-    if (email === "dono@gmail.com") {
-      signIn({
+        if (!canTryLocatario) {
+          throw firstError;
+        }
+
+        authResponse = await loginLocatario({ email, senha: password });
+      }
+
+      const userFromApi = authResponse?.usuario || {};
+
+      await signIn({
         user: {
-          id: "1",
-          nome: "Owner Teste",
-          email,
-          role: "owner",
+          ...userFromApi,
+          email: userFromApi?.email || email,
+          role: userFromApi?.role || "user",
         },
-        token: "fake-token-owner",
+        token: authResponse?.token,
       });
-      return;
+    } catch (error) {
+      setErrorMessage(resolveApiErrorMessage(error));
+    } finally {
+      setLoading(false);
     }
-
-    if (email === "usuario@gmail.com") {
-      signIn({
-        user: {
-          id: "2",
-          nome: "User Teste",
-          email,
-          role: "user",
-        },
-        token: "fake-token-user",
-      });
-      return;
-    }
-
-    //
-    // } catch (error) {
-    //   Alert.alert("Erro", "Email ou senha inválidos.");
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   return (
@@ -105,17 +104,28 @@ export default function Login() {
             <Input
               placeholder="Insira o e-mail"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(value) => {
+                setEmail(value);
+                if (errorMessage) {
+                  setErrorMessage("");
+                }
+              }}
             />
             <Input
               placeholder="Insira a senha"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (errorMessage) {
+                  setErrorMessage("");
+                }
+              }}
               secureTextEntry={true}
             />
+            {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
           </View>
 
-          <Button label={"Entrar"} onPress={handleLogin} disabled={loading} />
+          <Button label={loading ? "Entrando..." : "Entrar"} onPress={handleLogin} loading={loading} />
           <View style={styles.container_buttons}>
             <Text
               style={{
@@ -170,5 +180,12 @@ const styles = StyleSheet.create({
     color: COLORS.textMain,
     marginBottom: 30,
     fontWeight: "500",
+  },
+  errorText: {
+    width: "84%",
+    color: "#C62828",
+    marginTop: 12,
+    fontSize: 14,
+    fontFamily: "Montserrat",
   },
 });

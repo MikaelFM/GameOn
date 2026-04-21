@@ -1,16 +1,26 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { COLORS } from "../constants/colors";
 
-export const Button = ({ label, type, ...rest }) => {
+export const Button = ({ label, type, loading = false, disabled = false, ...rest }) => {
+  const isDisabled = disabled || loading;
+
   return (
     <TouchableOpacity
-      style={type == "cancel" ? styles.container_cancel : styles.container}
+      style={[
+        type == "cancel" ? styles.container_cancel : styles.container,
+        isDisabled ? styles.disabled : null,
+      ]}
       activeOpacity={0.6}
+      disabled={isDisabled}
       {...rest}
     >
-      <Text style={type == "cancel" ? styles.texto_cancel : styles.texto}>
-        {label}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={type == "cancel" ? COLORS.primary : "#fff"} />
+      ) : (
+        <Text style={type == "cancel" ? styles.texto_cancel : styles.texto}>
+          {label}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -47,5 +57,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Montserrat",
     fontWeight: "bold",
+  },
+  disabled: {
+    opacity: 0.7,
   },
 });

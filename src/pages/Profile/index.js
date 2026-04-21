@@ -7,6 +7,7 @@ import {
   Image,
   SafeAreaView,
   Modal,
+  Alert,
 } from "react-native";
 
 import { useNavigation, CommonActions } from "@react-navigation/native";
@@ -15,12 +16,13 @@ import { ProfileMenuOption } from "../../components/ProfileMenuOption";
 import { Button } from "../../components/Button";
 import { AuthContext } from "../../contexts/AuthContext";
 import Cadastro from "../SignUp/formUser";
+import { logoutUser } from "../../services/loginService";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const { signOut } = useContext(AuthContext);
+  const { user, token, signOut } = useContext(AuthContext);
 
   const handleEditPress = () => {
     setEditModalVisible(true);
@@ -29,8 +31,14 @@ export default function ProfileScreen() {
     setEditModalVisible(false);
   };
 
-  const handleSair = () => {
-    signOut();
+  const handleSair = async () => {
+    try {
+      await logoutUser({ id: user?.id, token });
+    } catch (error) {
+      Alert.alert("Aviso", error?.message || "Falha ao comunicar logout com servidor.");
+    } finally {
+      await signOut();
+    }
   };
 
   useEffect(() => {
