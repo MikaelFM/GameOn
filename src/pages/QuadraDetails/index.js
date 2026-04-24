@@ -13,74 +13,103 @@ import { COLORS } from '../../constants/colors';
 import { QuadraFeatureItem } from '../../components/QuadraFeatureItem';
 import { useNavigation } from '@react-navigation/native';
 
+function formatAddress(quadra) {
+  const parts = [quadra.endereco, quadra.cidade, quadra.estado].filter(Boolean);
+  return parts.join(", ") || "Endereço não informado";
+}
+
+function formatPrice(valor) {
+  if (!valor) return "—";
+  return Number(valor).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 export default function QuadraDetails({ route }) {
   const navigation = useNavigation();
   const quadra = route.params.quadra;
 
-  console.log(route.params)
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.content}>
-          
+
           <View style={styles.mainInfoCard}>
-            <Image 
-              source={{ uri: quadra.image }} 
-              style={styles.cardImage} 
+            <Image
+              source={quadra.imagem ? { uri: quadra.imagem } : null}
+              style={styles.cardImage}
             />
 
             <View style={styles.headerSection}>
-              <Text style={styles.courtTitle}>{quadra.name}</Text>
-              <Text style={styles.addressText}>{quadra.address}</Text>
+              <Text style={styles.courtTitle}>{quadra.nome}</Text>
+              <Text style={styles.addressText}>{formatAddress(quadra)}</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.detailsSection}>
-              <Text style={styles.subTitle}>Características</Text>
+              {quadra.descricao ? (
+                <>
+                  <Text style={styles.subTitle}>Descrição</Text>
+                  <Text style={styles.descricaoText}>{quadra.descricao}</Text>
+                </>
+              ) : null}
+
+              <Text style={[styles.subTitle, quadra.descricao && styles.subTitleSpaced]}>
+                Características
+              </Text>
               <View style={styles.featuresList}>
-                <QuadraFeatureItem icon="construct-outline" label="Piso de concreto" />
-                <QuadraFeatureItem icon="business-outline" label="Coberta" />
-                <QuadraFeatureItem icon="trophy-outline" label="Poliesportiva" />
+                {quadra.esporte ? (
+                  <QuadraFeatureItem icon="trophy-outline" label={quadra.esporte} />
+                ) : null}
+                {quadra.locador?.nome ? (
+                  <QuadraFeatureItem icon="person-outline" label={quadra.locador.nome} />
+                ) : null}
+                {quadra.cep ? (
+                  <QuadraFeatureItem icon="mail-outline" label={`CEP: ${quadra.cep}`} />
+                ) : null}
               </View>
             </View>
 
-            <View style={styles.divider} />
-
-            <View style={styles.locationFooter}>
-              <Ionicons name="location-sharp" size={18} color={COLORS.primary} />
-              <Text style={styles.distanceText}>900m de distância</Text>
-            </View>
+            {quadra.cidade ? (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.locationFooter}>
+                  <Ionicons name="location-sharp" size={18} color={COLORS.primary} />
+                  <Text style={styles.distanceText}>{quadra.cidade}{quadra.estado ? `, ${quadra.estado}` : ""}</Text>
+                </View>
+              </>
+            ) : null}
           </View>
 
           <Text style={styles.sectionLabel}>Serviços</Text>
           <View style={styles.priceCard}>
-            <Text style={styles.serviceName}>Quadra Poliesportiva</Text>
+            <Text style={styles.serviceName}>{quadra.esporte || quadra.nome}</Text>
             <Text style={styles.priceValue}>
-              <Text style={styles.priceGreen}>R$ 120,00</Text> / Hora
+              <Text style={styles.priceGreen}>{formatPrice(quadra.valorPorHora)}</Text> / Hora
             </Text>
           </View>
 
           <View style={styles.footer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
             >
               <Text style={styles.backButtonText}>Voltar</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.reserveButton}
-              onPress={() => navigation.navigate('ScheduleScreen', { quadra: quadra })}
+              onPress={() => navigation.navigate('ScheduleScreen', { quadra })}
             >
               <Text style={styles.reserveButtonText}>Reservar</Text>
             </TouchableOpacity>
           </View>
-          
+
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -94,7 +123,7 @@ const styles = StyleSheet.create({
     paddingTop: 30
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   content: {
     padding: 20,
@@ -136,6 +165,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.textMain,
+    marginBottom: 12,
+  },
+  subTitleSpaced: {
+    marginTop: 16,
+  },
+  descricaoText: {
+    fontSize: 14,
+    color: COLORS.textSub,
+    lineHeight: 20,
     marginBottom: 12,
   },
   featuresList: {

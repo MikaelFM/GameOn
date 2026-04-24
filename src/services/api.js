@@ -2,7 +2,14 @@ import axios from "axios";
 import { Platform } from "react-native";
 import { tokenService } from "./tokenService";
 
-const LOCAL_API_BASE_URL = "http://192.168.0.12:3000";
+
+const IP_LIST = {
+	ANA: "192.168.0.12",
+	MIKAEL: "192.168.0.106",
+	MIKAEL_MOBILE: "10.138.92.1"
+};
+
+const LOCAL_API_BASE_URL = `http://${IP_LIST.MIKAEL}:3000`;
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || LOCAL_API_BASE_URL;
 
@@ -43,7 +50,7 @@ api.interceptors.response.use(
 	(response) => {
 		return {
 			status: response.status,
-			...response.data,
+			data: response.data,
 		};
 	},
 	async (error) => {

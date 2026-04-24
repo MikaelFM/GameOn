@@ -34,7 +34,7 @@ export default function ClientList() {
 		try {
 			setLoading(true);
 			const response = await getClientesByQuadra(quadraId);
-			setClientes(response.data || response);
+			setClientes(response.data);
 		} catch (error) {
 			console.error(error);
 			Alert.alert("Erro", "Não foi possível carregar a lista de clientes.");

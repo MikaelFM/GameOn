@@ -1,8 +1,12 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput} from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { useContext, useCallback, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { QuadraCardWithPhoto } from '../../components/QuadraCardWithPhoto';
 import CategorySearchCard from '../../components/CategorySearchCard';
-import { COLORS } from '../../constants/colors'
+import { COLORS } from '../../constants/colors';
+import { AuthContext } from '../../contexts/AuthContext';
+import { getProximaReserva } from '../../services/reservaService';
 
 const CATEGORIAS = [
   { id: '1', name: 'Futebol', icon: 'football' },
@@ -30,12 +34,35 @@ const QUADRAS = [
   },
 ];
 
+function formatReservaTime(iso) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export default function Home() {
+  const navigation = useNavigation();
+  const { user } = useContext(AuthContext);
+  const [proximaReserva, setProximaReserva] = useState(undefined);
+
+  useFocusEffect(
+    useCallback(() => {
+      setProximaReserva(undefined);
+      getProximaReserva()
+        .then(res => {
+          const body = res.data;
+          setProximaReserva(body?.temReserva ? body.proximaReserva : null);
+        })
+        .catch(() => setProximaReserva(null));
+    }, [])
+  );
+
+  const primeiroNome = user?.nome?.split(' ')[0] ?? 'Jogador';
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Olá, Jogador!</Text>
+          <Text style={styles.greeting}>Olá, {primeiroNome}!</Text>
           <Text style={styles.subGreeting}>Onde vamos jogar hoje?</Text>
         </View>
         <TouchableOpacity style={styles.profileBadge}>
@@ -46,8 +73,8 @@ export default function Home() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color="#888" />
-          <TextInput 
-            placeholder="Buscar quadras ou clubes..." 
+          <TextInput
+            placeholder="Buscar quadras ou clubes..."
             style={styles.searchInput}
           />
         </View>
@@ -55,23 +82,47 @@ export default function Home() {
         <Text style={styles.sectionTitle}>Esportes</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesList}>
           {CATEGORIAS.map((category) => (
-            <CategorySearchCard
-              key={category.id} 
-              category={category}
-            />
+            <CategorySearchCard key={category.id} category={category} />
           ))}
         </ScrollView>
 
-        <View style={styles.promoCard}>
-          <View style={styles.promoContent}>
-            <Text style={styles.promoTitle}>Você tem jogo hoje!</Text>
-            <Text style={styles.promoSubtitle}>Arena Central às 19:00</Text>
-            <TouchableOpacity style={styles.promoButton}>
-              <Text style={styles.promoButtonText}>Ver Detalhes</Text>
-            </TouchableOpacity>
+        {proximaReserva === undefined ? (
+          <View style={styles.promoCard}>
+            <View style={styles.promoContent}>
+              <ActivityIndicator color="#FFF" size="small" />
+            </View>
           </View>
-          <Ionicons name="calendar" size={60} color="rgba(255,255,255,0.3)" />
-        </View>
+        ) : proximaReserva ? (
+          <View style={styles.promoCard}>
+            <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>Você tem jogo hoje!</Text>
+              <Text style={styles.promoSubtitle}>
+                {proximaReserva.quadra?.nome} às {formatReservaTime(proximaReserva.periodo?.dataInicio)}
+              </Text>
+              <TouchableOpacity
+                style={styles.promoButton}
+                onPress={() => navigation.navigate('Schedules')}
+              >
+                <Text style={styles.promoButtonText}>Ver Detalhes</Text>
+              </TouchableOpacity>
+            </View>
+            <Ionicons name="calendar" size={60} color="rgba(255,255,255,0.3)" />
+          </View>
+        ) : proximaReserva === null ? (
+          <View style={styles.promoCard}>
+            <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>Nenhum jogo agendado</Text>
+              <Text style={styles.promoSubtitle}>Que tal fazer sua primeira reserva?</Text>
+              <TouchableOpacity
+                style={styles.promoButton}
+                onPress={() => navigation.navigate('SearchResult')}
+              >
+                <Text style={styles.promoButtonText}>Reservar agora</Text>
+              </TouchableOpacity>
+            </View>
+            <Ionicons name="football-outline" size={60} color="rgba(255,255,255,0.3)" />
+          </View>
+        ) : null}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Quadras Disponíveis</Text>
@@ -79,11 +130,7 @@ export default function Home() {
         </View>
 
         {QUADRAS.map((quadra) => (
-          <QuadraCardWithPhoto
-            key={quadra.id}  
-            quadra={quadra} 
-            onPress={() => console.log('Navegar para detalhes')}
-          />
+          <QuadraCardWithPhoto key={quadra.id} quadra={quadra} onPress={() => {}} />
         ))}
       </ScrollView>
     </View>

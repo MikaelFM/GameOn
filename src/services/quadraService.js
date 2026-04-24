@@ -34,8 +34,9 @@ export async function createQuadra(dadosQuadra, token) {
 	});
 }
 
-export async function listQuadrasComHorariosDisponiveis() {
-	return api.get("/quadras/horarios-disponiveis");
+export async function listQuadrasComHorariosDisponiveis({ quadraId, data } = {}) {
+	const params = removeEmptyParams({ quadraId, data });
+	return api.get("/quadras/horarios-disponiveis", { params });
 }
 
 export async function getQuadraById(id) {

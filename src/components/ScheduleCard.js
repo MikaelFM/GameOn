@@ -1,28 +1,39 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors'
 
-const ScheduleCard = ({ item, isCompleted }) => {
+const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
+  function handleCancel() {
+    Alert.alert(
+      'Cancelar reserva',
+      `Deseja cancelar a reserva de ${item.courtName}?`,
+      [
+        { text: 'Não', style: 'cancel' },
+        { text: 'Sim, cancelar', style: 'destructive', onPress: () => onCancel?.(item.id) },
+      ]
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.infoRow}>
-          <Ionicons 
-            name="calendar-outline" 
-            size={18} 
-            color={COLORS.primary} 
+          <Ionicons
+            name="calendar-outline"
+            size={18}
+            color={COLORS.primary}
           />
           <Text style={styles.dateText}>
             {item.date} - {item.time}
           </Text>
         </View>
         <View style={[
-          styles.statusBadge, 
+          styles.statusBadge,
           { backgroundColor: isCompleted ? '#F1F1F1' : '#E8F5E9' }
         ]}>
           <Text style={[
-            styles.statusText, 
+            styles.statusText,
             { color: isCompleted ? '#666' : COLORS.primary }
           ]}>
             {isCompleted ? 'Finalizado' : 'Confirmado'}
@@ -35,8 +46,15 @@ const ScheduleCard = ({ item, isCompleted }) => {
 
       {!isCompleted && (
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.cancelButton}>
-            <Text style={styles.cancelText}>Cancelar</Text>
+          <TouchableOpacity
+            style={[styles.cancelButton, cancelling && styles.cancelButtonDisabled]}
+            onPress={handleCancel}
+            disabled={cancelling}
+          >
+            {cancelling
+              ? <ActivityIndicator size="small" color="#E57373" />
+              : <Text style={styles.cancelText}>Cancelar</Text>
+            }
           </TouchableOpacity>
           <TouchableOpacity style={styles.detailsButton}>
             <Text style={styles.detailsText}>Ver Detalhes</Text>
@@ -108,6 +126,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E57373',
+  },
+  cancelButtonDisabled: {
+    opacity: 0.6,
   },
   cancelText: {
     color: '#E57373',

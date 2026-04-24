@@ -37,7 +37,7 @@ export async function loginLocador({ email, senha }) {
 		email,
 		senha,
 	});
-	return normalizeAuthResponse(response);
+	return normalizeAuthResponse(response.data);
 }
 
 export async function loginLocatario({ email, senha }) {
@@ -46,7 +46,7 @@ export async function loginLocatario({ email, senha }) {
 		senha,
 	});
 	console.log("Resposta da API de login locatario:", response);
-	return normalizeAuthResponse(response);
+	return normalizeAuthResponse(response.data);
 }
 
 export async function logoutUser({ id, token }) {

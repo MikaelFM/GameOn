@@ -35,7 +35,7 @@ export default function OwnerCalendar() {
 		setLoading(true);
 		try {
 			const response = await getReservasLocadorDia(selectedDate);
-			setReservas(response.data || response);
+			setReservas(response.data);
 		} catch (error) {
 			console.error(error);
 		} finally {

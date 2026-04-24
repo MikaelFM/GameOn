@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
 	StyleSheet,
 	View,
@@ -6,39 +6,78 @@ import {
 	FlatList,
 	TouchableOpacity,
 	SafeAreaView,
+	ActivityIndicator,
+	Alert,
 } from "react-native";
 import { COLORS } from "../../constants/colors";
 import ScheduleCard from "../../components/ScheduleCard";
+import { listReservas, cancelReserva } from "../../services/reservaService";
+import { useFocusEffect } from "@react-navigation/native";
 
-const UPCOMING = [
-	{
-		id: "1",
-		courtName: "Arena Central - Quadra A",
-		date: "22 Mar",
-		time: "19:00",
-		location: "Bairro Centro",
-	},
-	{
-		id: "2",
-		courtName: "Beach Tennis Pro",
-		date: "25 Mar",
-		time: "08:00",
-		location: "Orla Marítima",
-	},
-];
+const MONTH_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-const COMPLETED = [
-	{
-		id: "3",
-		courtName: "Clube do Tênis",
-		date: "10 Mar",
-		time: "17:00",
-		location: "Jardim América",
-	},
-];
+function formatDate(iso) {
+	const d = new Date(iso);
+	return `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
+}
+
+function formatTime(iso) {
+	const d = new Date(iso);
+	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function mapReserva(reserva) {
+	return {
+		id: String(reserva.id),
+		courtName: reserva.quadra?.nome ?? 'Quadra',
+		location: reserva.quadra?.esporte ?? '',
+		date: formatDate(reserva.dataInicio),
+		time: formatTime(reserva.dataInicio),
+	};
+}
 
 export default function Schedules() {
 	const [activeTab, setActiveTab] = useState("upcoming");
+	const [upcoming, setUpcoming] = useState([]);
+	const [completed, setCompleted] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [erro, setErro] = useState(null);
+	const [cancellingId, setCancellingId] = useState(null);
+
+	useFocusEffect(
+		useCallback(() => {
+			setLoading(true);
+			setErro(null);
+			async function fetchReservas() {
+				try {
+					const response = await listReservas();
+					const todas = (response.data ?? []).filter(r => r.status === 'RESERVADO');
+					const now = new Date();
+					setUpcoming(todas.filter(r => new Date(r.dataFim) >= now).map(mapReserva));
+					setCompleted(todas.filter(r => new Date(r.dataFim) < now).map(mapReserva));
+				} catch (e) {
+					setErro(e.message || 'Erro ao carregar reservas');
+				} finally {
+					setLoading(false);
+				}
+			}
+			fetchReservas();
+		}, [])
+	);
+
+	async function handleCancel(id) {
+		setCancellingId(id);
+		try {
+			await cancelReserva(id);
+			setUpcoming(prev => prev.filter(r => r.id !== id));
+		} catch (e) {
+			Alert.alert('Erro', e.message || 'Não foi possível cancelar a reserva.');
+		} finally {
+			setCancellingId(null);
+		}
+	}
+
+	const listData = activeTab === "upcoming" ? upcoming : completed;
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -75,18 +114,29 @@ export default function Schedules() {
 					</TouchableOpacity>
 				</View>
 
-				<FlatList
-					data={activeTab === "upcoming" ? UPCOMING : COMPLETED}
-					keyExtractor={(item) => item.id}
-					renderItem={({ item }) => (
-						<ScheduleCard item={item} isCompleted={activeTab === "completed"} />
-					)}
-					contentContainerStyle={styles.listContent}
-					showsVerticalScrollIndicator={false}
-					ListEmptyComponent={
-						<Text style={styles.emptyText}>Nenhum agendamento encontrado.</Text>
-					}
-				/>
+				{loading ? (
+					<ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+				) : erro ? (
+					<Text style={styles.emptyText}>{erro}</Text>
+				) : (
+					<FlatList
+						data={listData}
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => (
+							<ScheduleCard
+								item={item}
+								isCompleted={activeTab === "completed"}
+								onCancel={handleCancel}
+								cancelling={cancellingId === item.id}
+							/>
+						)}
+						contentContainerStyle={styles.listContent}
+						showsVerticalScrollIndicator={false}
+						ListEmptyComponent={
+							<Text style={styles.emptyText}>Nenhum agendamento encontrado.</Text>
+						}
+					/>
+				)}
 			</View>
 		</SafeAreaView>
 	);
@@ -101,6 +151,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 20,
 		paddingTop: 100,
+		paddingBottom: 70
 	},
 	title: {
 		fontSize: 24,
@@ -133,6 +184,9 @@ const styles = StyleSheet.create({
 	},
 	activeTabText: {
 		color: COLORS.primary,
+	},
+	loader: {
+		marginTop: 40,
 	},
 	listContent: {
 		paddingBottom: 20,

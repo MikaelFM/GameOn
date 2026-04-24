@@ -45,9 +45,9 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        if (storedToken && storedUser) {
+        if (storedToken) {
           setToken(storedToken);
-          setUser(storedUser);
+          setUser(storedUser ?? {});
         }
       } finally {
         if (isMounted) {
