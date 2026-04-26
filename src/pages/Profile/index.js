@@ -42,16 +42,10 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    // fetch('https://api.gameon.com/user/profile')
-    // .then(res => res.json())
-    // .then(data => setUserData(data));
-
-    // Simulação de dados retornados:
-    setUserData({
-      nome: "Fulano de Tal",
-      email: "fulano.tal@gmail.com",
-    });
-  }, []);
+    if (user) {
+      setUserData({ nome: user.nome, email: user.email });
+    }
+  }, [user]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -64,8 +58,8 @@ export default function ProfileScreen() {
             style={styles.avatar}
           />
           <View style={styles.infoContainer}>
-            <Text style={styles.userName}>Fulano de Tal</Text>
-            <Text style={styles.userEmail}>fulano.tal@gmail.com</Text>
+            <Text style={styles.userName}>{user?.nome ?? "—"}</Text>
+            <Text style={styles.userEmail}>{user?.email ?? "—"}</Text>
             <TouchableOpacity
               style={styles.editButton}
               onPress={handleEditPress}

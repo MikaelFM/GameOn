@@ -15,7 +15,12 @@ function normalizeRole(rawRole) {
 }
 
 function normalizeAuthResponse(data) {
-	const usuario = data?.usuario || data?.user || {};
+	const usuario =
+		data?.usuario ||
+		data?.user ||
+		data?.locador ||
+		data?.locatario ||
+		{};
 	const token = data?.token;
 
 	if (!token) {
@@ -27,6 +32,9 @@ function normalizeAuthResponse(data) {
 		token,
 		usuario: {
 			...usuario,
+			id: usuario?.id ?? usuario?.locadorId ?? usuario?.locatarioId,
+			nome: usuario?.nome ?? usuario?.name,
+			email: usuario?.email,
 			role: normalizeRole(usuario?.role || usuario?.tipo),
 		},
 	};

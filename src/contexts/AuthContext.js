@@ -19,9 +19,7 @@ export function AuthProvider({ children }) {
 
     const persisted = await tokenService.salvarToken(token, user);
     if (!persisted) {
-      setUser(null);
-      setToken(null);
-      throw new Error("Nao foi possivel salvar a sessao do usuario.");
+      console.warn("Sessao nao persistida. O usuario precisara refazer login ao reiniciar o app.");
     }
   }, []);
 
