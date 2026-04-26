@@ -35,12 +35,19 @@ export default function OwnerCalendar() {
 		setLoading(true);
 		try {
 			const response = await getReservasLocadorDia(selectedDate);
-			setReservas(response.data);
+			setReservas(response.data?.reservas ?? []);
 		} catch (error) {
 			console.error(error);
+			setReservas([]);
 		} finally {
 			setLoading(false);
 		}
+	}
+
+	function formatHora(isoString) {
+		if (!isoString) return "--:--";
+		const d = new Date(isoString);
+		return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 	}
 
 	const handleCancel = (id) => {
@@ -102,9 +109,10 @@ export default function OwnerCalendar() {
 							>
 								<View style={styles.reservaInfo}>
 									<Text style={styles.reservaTime}>
-										{item.horaInicio} - {item.horaFim}
+										{formatHora(item.periodo?.dataInicio)} - {formatHora(item.periodo?.dataFim)}
 									</Text>
-									<Text style={styles.reservaClient}>{item.cliente?.nome}</Text>
+									<Text style={styles.reservaClient}>{item.locatario?.nome}</Text>
+									<Text style={styles.reservaQuadra}>{item.quadra?.nome}</Text>
 								</View>
 								<Text style={styles.detailsText}>Ver detalhes</Text>
 							</TouchableOpacity>
@@ -127,16 +135,34 @@ export default function OwnerCalendar() {
 
 						<View style={styles.detailRow}>
 							<Text style={styles.detailLabel}>Cliente</Text>
+							<Text style={styles.detailValue}>{selectedReserva?.locatario?.nome}</Text>
+						</View>
+
+						<View style={styles.detailRow}>
+							<Text style={styles.detailLabel}>Telefone</Text>
+							<Text style={styles.detailValue}>{selectedReserva?.locatario?.telefone ?? "—"}</Text>
+						</View>
+
+						<View style={styles.detailRow}>
+							<Text style={styles.detailLabel}>Quadra</Text>
+							<Text style={styles.detailValue}>{selectedReserva?.quadra?.nome}</Text>
+						</View>
+
+						<View style={styles.detailRow}>
+							<Text style={styles.detailLabel}>Horário</Text>
 							<Text style={styles.detailValue}>
-								{selectedReserva?.cliente?.nome}
+								{formatHora(selectedReserva?.periodo?.dataInicio)} – {formatHora(selectedReserva?.periodo?.dataFim)}
 							</Text>
 						</View>
 
 						<View style={styles.detailRow}>
-							<Text style={styles.detailLabel}>E-mail</Text>
-							<Text style={styles.detailValue}>
-								{selectedReserva?.cliente?.email}
-							</Text>
+							<Text style={styles.detailLabel}>Valor Total</Text>
+							<Text style={styles.detailValue}>R$ {Number(selectedReserva?.valorTotal ?? 0).toFixed(2)}</Text>
+						</View>
+
+						<View style={styles.detailRow}>
+							<Text style={styles.detailLabel}>Status</Text>
+							<Text style={styles.detailValue}>{selectedReserva?.status}</Text>
 						</View>
 
 						<View style={styles.buttonContainer}>
@@ -222,6 +248,11 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "600",
 		color: COLORS.textMain,
+	},
+	reservaQuadra: {
+		fontSize: 12,
+		color: COLORS.textSub,
+		marginTop: 2,
 	},
 	detailsText: {
 		fontSize: 12,

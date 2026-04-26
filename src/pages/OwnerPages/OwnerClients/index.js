@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useContext } from "react";
 import {
 	StyleSheet,
 	View,
@@ -11,30 +11,37 @@ import {
 	ActivityIndicator,
 	Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // Certifique-se de ter o expo-icons
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../../constants/colors";
-import { getClientesByQuadra } from "../../../services/reservaService";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { getClientesByLocador } from "../../../services/reservaService";
 
 export default function ClientList() {
+	const { user } = useContext(AuthContext);
 	const [clientes, setClientes] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	const [loading, setLoading] = useState(true);
-
-	// ID da quadra (futuramente virá do seu AuthContext ou Params)
-	const quadraId = "1";
 
 	const avatarGenerico =
 		"https://avatar.iran.liara.run/public/boy?username=User";
 
 	useEffect(() => {
-		fetchClientes();
-	}, []);
+		if (user?.id) fetchClientes();
+	}, [user?.id]);
 
 	async function fetchClientes() {
 		try {
 			setLoading(true);
-			const response = await getClientesByQuadra(quadraId);
-			setClientes(response.data);
+			const res = await getClientesByLocador(user.id);
+			const data = res?.data;
+			const lista = Array.isArray(data)
+				? data
+				: Array.isArray(data?.clientes)
+				? data.clientes
+				: Array.isArray(data?.data)
+				? data.data
+				: [];
+			setClientes(lista);
 		} catch (error) {
 			console.error(error);
 			Alert.alert("Erro", "Não foi possível carregar a lista de clientes.");
@@ -45,10 +52,11 @@ export default function ClientList() {
 
 	// Lógica de pesquisa em tempo real
 	const filteredClientes = useMemo(() => {
+		const termo = searchText.toLowerCase();
 		return clientes.filter(
 			(c) =>
-				c.nome.toLowerCase().includes(searchText.toLowerCase()) ||
-				c.email.toLowerCase().includes(searchText.toLowerCase()),
+				(c.nome ?? "").toLowerCase().includes(termo) ||
+				(c.email ?? "").toLowerCase().includes(termo),
 		);
 	}, [searchText, clientes]);
 
@@ -93,7 +101,7 @@ export default function ClientList() {
 				) : (
 					<FlatList
 						data={filteredClientes}
-						keyExtractor={(item) => item.id.toString()}
+						keyExtractor={(item, index) => String(item.id ?? index)}
 						renderItem={({ item }) => (
 							<View style={styles.clientCard}>
 								<View style={styles.clientInfo}>

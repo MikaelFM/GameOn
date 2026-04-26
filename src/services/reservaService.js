@@ -81,6 +81,11 @@ export async function getClientesByQuadra(quadraId) {
   return api.get(`/reservas/quadra/${quadraId}/clientes`);
 }
 
+export async function getClientesByLocador(locadorId) {
+  ensureId(locadorId, "locadorId");
+  return api.get(`/reservas/locador/${locadorId}/clientes`);
+}
+
 export async function getHistoricoLocador() {
   return api.get("/reservas/locador/historico");
 }

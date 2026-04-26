@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import { COLORS } from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
-import { listQuadras } from "../../services/quadraService";
+import { filtrarQuadras } from "../../services/quadraService";
 
 const ESPORTES = ["Futebol", "Tênis", "Vôlei", "Beach Tennis", "Basquete", "Futsal"];
 const HORARIOS = ["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00",
@@ -58,11 +58,36 @@ export default function SearchResult() {
       setLoading(true);
       setErro(null);
       try {
-        const response = await listQuadras({
+        let dataInicio;
+        let dataFim;
+
+        if (filtroData && filtroHorario) {
+          const [h, m] = filtroHorario.split(":");
+          const inicio = new Date(`${filtroData}T${filtroHorario}:00`);
+          const fim = new Date(inicio);
+          fim.setHours(fim.getHours() + 1);
+          dataInicio = inicio.toISOString();
+          dataFim = fim.toISOString();
+        } else if (filtroData) {
+          dataInicio = `${filtroData}T00:00:00`;
+          dataFim = `${filtroData}T23:59:59`;
+        }
+
+        const response = await filtrarQuadras({
           esporte: filtroEsporte ?? undefined,
-          cidade: filtroCidade || undefined,
+          localizacao: filtroCidade || undefined,
+          dataInicio,
+          dataFim,
         });
-        setQuadras(response.data);
+        const data = response.data;
+        const lista = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.quadras)
+          ? data.quadras
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+        setQuadras(lista);
       } catch (e) {
         setErro(e.message || "Erro ao carregar quadras");
       } finally {
@@ -70,7 +95,7 @@ export default function SearchResult() {
       }
     }
     fetchQuadras();
-  }, [filtroEsporte, filtroCidade]);
+  }, [filtroEsporte, filtroCidade, filtroData, filtroHorario]);
 
   const displayedQuadras = useMemo(() => {
     if (!searchText.trim()) return quadras;

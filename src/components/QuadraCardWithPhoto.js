@@ -3,67 +3,73 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 
 export const QuadraCardWithPhoto = ({ quadra, onPress }) => {
+  const preco = quadra.valorPorHora ? `R$ ${quadra.valorPorHora}/h` : 'Consultar';
+
   return (
-     <TouchableOpacity style={styles.quadraCard}>
-        <Image source={{ uri: quadra.image }} style={styles.quadraImage} />
-        <View style={styles.quadraInfo}>
-            <View style={styles.quadraHeader}>
-            <Text style={styles.quadraName}>{quadra.name}</Text>
+    <TouchableOpacity style={styles.quadraCard} onPress={onPress}>
+      <Image source={quadra.imagem ? { uri: quadra.imagem } : null} style={styles.quadraImage} />
+      <View style={styles.quadraInfo}>
+        <View style={styles.quadraHeader}>
+          <Text style={styles.quadraName}>{quadra.nome}</Text>
+          {quadra.rating != null && (
             <View style={styles.ratingBox}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingText}>{quadra.rating}</Text>
+              <Ionicons name="star" size={14} color="#FFD700" />
+              <Text style={styles.ratingText}>{quadra.rating}</Text>
             </View>
-            </View>
-            <Text style={styles.quadraType}>{quadra.type}</Text>
-            <Text style={styles.quadraPrice}>{quadra.price}</Text>
+          )}
         </View>
+        {!!quadra.esporte && <Text style={styles.quadraType}>{quadra.esporte}</Text>}
+        <Text style={styles.quadraPrice}>{preco}</Text>
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  quadraCard: { 
-    backgroundColor: COLORS.card, 
-    borderRadius: 16, 
-    marginBottom: 15, 
+  quadraCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    marginBottom: 15,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.border 
+    borderColor: COLORS.border,
   },
-  quadraImage: { 
-    width: '100%', 
-    height: 150 
+  quadraImage: {
+    width: '100%',
+    height: 150,
+    backgroundColor: '#EEE',
   },
-  quadraInfo: { 
-    padding: 15 
+  quadraInfo: {
+    padding: 15,
   },
-  quadraHeader: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
+  quadraHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  quadraName: { 
-    fontSize: 16, 
+  quadraName: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.textMain
+    color: COLORS.textMain,
+    flex: 1,
   },
-  ratingBox: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  ratingBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  ratingText: { 
-    marginLeft: 4, 
+  ratingText: {
+    marginLeft: 4,
     fontWeight: 'bold',
-    fontSize: 12
+    fontSize: 12,
   },
-  quadraType: { 
-    color: COLORS.textSub, 
+  quadraType: {
+    color: COLORS.textSub,
     marginVertical: 4,
-    fontSize: 14
+    fontSize: 14,
   },
-  quadraPrice: { 
-    color: COLORS.primary, 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  quadraPrice: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

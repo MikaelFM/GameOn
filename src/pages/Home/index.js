@@ -7,31 +7,13 @@ import CategorySearchCard from '../../components/CategorySearchCard';
 import { COLORS } from '../../constants/colors';
 import { AuthContext } from '../../contexts/AuthContext';
 import { getProximaReserva } from '../../services/reservaService';
+import { listQuadras } from '../../services/quadraService';
 
 const CATEGORIAS = [
   { id: '1', name: 'Futebol', icon: 'football' },
   { id: '2', name: 'Tênis', icon: 'tennisball' },
   { id: '3', name: 'Vôlei', icon: 'basketball' },
   { id: '4', name: 'Beach', icon: 'sunny' },
-];
-
-const QUADRAS = [
-  {
-    id: '1',
-    name: 'Arena Central - Quadra A',
-    type: 'Grama Sintética',
-    price: 'R$ 120/h',
-    rating: 4.8,
-    image: 'https://sesisc.org.br/sites/default/files/styles/800x533/public/galeria/2021-02/quadra-poliesportiva.jpg?itok=vRxUWESB',
-  },
-  {
-    id: '2',
-    name: 'Beach Tennis Pro',
-    type: 'Areia',
-    price: 'R$ 80/h',
-    rating: 4.9,
-    image: 'https://jornalinformativo.com/wp-content/uploads/2023/04/Quadra-do-Ginasio-Poliesportivo-recebe-melhorias-1-1024x461.jpg',
-  },
 ];
 
 function formatReservaTime(iso) {
@@ -43,6 +25,8 @@ export default function Home() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const [proximaReserva, setProximaReserva] = useState(undefined);
+  const [quadras, setQuadras] = useState([]);
+  const [loadingQuadras, setLoadingQuadras] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,6 +37,22 @@ export default function Home() {
           setProximaReserva(body?.temReserva ? body.proximaReserva : null);
         })
         .catch(() => setProximaReserva(null));
+
+      setLoadingQuadras(true);
+      listQuadras()
+        .then(res => {
+          const data = res.data;
+          const lista = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.quadras)
+            ? data.quadras
+            : Array.isArray(data?.data)
+            ? data.data
+            : [];
+          setQuadras(lista);
+        })
+        .catch(() => setQuadras([]))
+        .finally(() => setLoadingQuadras(false));
     }, [])
   );
 
@@ -76,6 +76,7 @@ export default function Home() {
           <TextInput
             placeholder="Buscar quadras ou clubes..."
             style={styles.searchInput}
+            onFocus={() => navigation.navigate('SearchResult')}
           />
         </View>
 
@@ -108,7 +109,7 @@ export default function Home() {
             </View>
             <Ionicons name="calendar" size={60} color="rgba(255,255,255,0.3)" />
           </View>
-        ) : proximaReserva === null ? (
+        ) : (
           <View style={styles.promoCard}>
             <View style={styles.promoContent}>
               <Text style={styles.promoTitle}>Nenhum jogo agendado</Text>
@@ -122,16 +123,28 @@ export default function Home() {
             </View>
             <Ionicons name="football-outline" size={60} color="rgba(255,255,255,0.3)" />
           </View>
-        ) : null}
+        )}
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Quadras Disponíveis</Text>
-          <TouchableOpacity><Text style={styles.seeAll}>Ver todas</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('SearchResult')}>
+            <Text style={styles.seeAll}>Ver todas</Text>
+          </TouchableOpacity>
         </View>
 
-        {QUADRAS.map((quadra) => (
-          <QuadraCardWithPhoto key={quadra.id} quadra={quadra} onPress={() => {}} />
-        ))}
+        {loadingQuadras ? (
+          <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />
+        ) : quadras.length === 0 ? (
+          <Text style={styles.emptyText}>Nenhuma quadra disponível no momento.</Text>
+        ) : (
+          quadras.map((quadra) => (
+            <QuadraCardWithPhoto
+              key={String(quadra.id)}
+              quadra={quadra}
+              onPress={() => navigation.navigate('QuadraDetails', { quadra })}
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -200,6 +213,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
   },
+  promoContent: {
+    flex: 1,
+  },
   promoTitle: {
     color: '#FFF',
     fontSize: 18,
@@ -231,5 +247,11 @@ const styles = StyleSheet.create({
   seeAll: {
     color: COLORS.primary,
     fontWeight: '600',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: COLORS.textSub,
+    marginTop: 20,
+    fontSize: 14,
   },
 });
