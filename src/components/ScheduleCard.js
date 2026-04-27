@@ -44,6 +44,13 @@ const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
       <Text style={styles.courtName}>{item.courtName}</Text>
       <Text style={styles.location}>{item.location}</Text>
 
+      {item.codigoSeguranca && (
+        <View style={styles.codeContainer}>
+          <Text style={styles.codeLabel}>Código do agendamento</Text>
+          <Text style={styles.codeValue}>{item.codigoSeguranca}</Text>
+        </View>
+      )}
+
       {!isCompleted && (
         <View style={styles.footer}>
           <TouchableOpacity
@@ -109,6 +116,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSub,
     marginTop: 4,
+  },
+  codeContainer: {
+    marginTop: 10,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  codeLabel: {
+    fontSize: 11,
+    color: COLORS.textSub,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  codeValue: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: COLORS.textMain,
+    letterSpacing: 2,
   },
   footer: {
     flexDirection: 'row',

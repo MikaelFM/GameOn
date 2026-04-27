@@ -1,32 +1,38 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { COLORS } from "../constants/colors";
 
-const sports = [
-  "Futebol",
-  "Vôlei",
-  "Basquete",
-  "Futsal",
-  "Tênis",
-  "Beach Tênis",
-  "Handebol",
-  "Outros",
-];
+export function SportCheckboxGroup({ selected = [], onToggle, options = [], loading = false }) {
+  if (loading) {
+    return (
+      <View style={styles.loadingBox}>
+        <Text style={styles.loadingText}>Carregando esportes...</Text>
+      </View>
+    );
+  }
 
-export function SportCheckboxGroup({ selected, onToggle }) {
+  if (!options.length) {
+    return (
+      <View style={styles.loadingBox}>
+        <Text style={styles.loadingText}>Nenhum esporte disponível.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.group}>
-      {sports.map((sport) => {
-        const checked = selected.includes(sport);
+      {options.map((sport) => {
+        const sportId = Number(sport.id);
+        const checked = selected.map(Number).includes(sportId);
         return (
           <TouchableOpacity
-            key={sport}
+            key={String(sportId)}
             style={styles.row}
-            onPress={() => onToggle(sport)}
+            onPress={() => onToggle(sportId)}
           >
             <View style={[styles.checkbox, checked && styles.checked]}>
               {checked && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.label}>{sport}</Text>
+            <Text style={styles.label}>{sport.nome}</Text>
           </TouchableOpacity>
         );
       })}
@@ -63,4 +69,13 @@ const styles = StyleSheet.create({
   checked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   checkmark: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   label: { fontSize: 16 },
+  loadingBox: {
+    width: "84%",
+    paddingVertical: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: COLORS.textSub,
+    textAlign: "center",
+  },
 });

@@ -165,6 +165,13 @@ export default function OwnerCalendar() {
 							<Text style={styles.detailValue}>{selectedReserva?.status}</Text>
 						</View>
 
+						{selectedReserva?.codigoSeguranca && (
+							<View style={styles.detailRow}>
+								<Text style={styles.detailLabel}>Código do agendamento</Text>
+								<Text style={[styles.detailValue, styles.codeValue]}>{selectedReserva.codigoSeguranca}</Text>
+							</View>
+						)}
+
 						<View style={styles.buttonContainer}>
 							<TouchableOpacity
 								style={[styles.modalButton, styles.cancelActionBtn]}
@@ -301,6 +308,11 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: COLORS.textMain,
 		fontWeight: "500",
+	},
+	codeValue: {
+		fontWeight: 'bold',
+		letterSpacing: 2,
+		color: COLORS.primary,
 	},
 	buttonContainer: {
 		marginTop: 10,

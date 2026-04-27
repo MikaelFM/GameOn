@@ -6,7 +6,7 @@ import OwnerHome from "../pages/OwnerPages/OwnerHome/index.js";
 import OwnerSchedules from "../pages/OwnerPages/OwnerSchedules/index.js";
 import OwnerClients from "../pages/OwnerPages/OwnerClients/index.js";
 import OwnerProfile from "../pages/Profile";
-import EditQuadra from "../pages/OwnerPages/EditQuadra/index.js";
+import QuadraForm from "../pages/OwnerPages/QuadraForm/index.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -72,7 +72,7 @@ export default function OwnerTabRoutes() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="tabs" component={OwnerTabs} />
-      <Stack.Screen name="EditQuadra" component={EditQuadra} />
+      <Stack.Screen name="QuadraForm" component={QuadraForm} />
     </Stack.Navigator>
   );
 }

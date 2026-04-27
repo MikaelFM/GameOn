@@ -7,7 +7,9 @@ const horarios = Array.from({ length: 48 }, (_, i) => {
   return `${h}:${m}`;
 });
 
-export function TimePicker({ selectedValue, onValueChange }) {
+export const FECHADO = "FECHADO";
+
+export function TimePicker({ selectedValue, onValueChange, showClosedOption = false }) {
   return (
     <View style={styles.wrapper}>
       <Picker
@@ -16,6 +18,14 @@ export function TimePicker({ selectedValue, onValueChange }) {
         style={styles.picker}
         dropdownIconColor="#2B9D48"
       >
+        {showClosedOption && (
+          <Picker.Item
+            key={FECHADO}
+            label="Sem expediente"
+            value={FECHADO}
+            style={[styles.item, styles.itemFechado]}
+          />
+        )}
         {horarios.map((hour) => (
           <Picker.Item
             key={hour}
@@ -47,5 +57,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
     backgroundColor: "#f9f9f9",
+  },
+  itemFechado: {
+    color: "#999",
+    fontStyle: "italic",
   },
 });

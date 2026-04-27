@@ -16,9 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import { COLORS } from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
-import { filtrarQuadras, getQuadraImageUri } from "../../services/quadraService";
+import { filtrarQuadras, getQuadraImageUri, getEsportes } from "../../services/quadraService";
 
-const ESPORTES = ["Futebol", "Tênis", "Vôlei", "Beach Tennis", "Basquete", "Futsal"];
 const HORARIOS = ["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00",
   "14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
 
@@ -52,6 +51,7 @@ export default function SearchResult() {
   const [modalData, setModalData] = useState(false);
   const [modalHorario, setModalHorario] = useState(false);
   const [cidadeInput, setCidadeInput] = useState("");
+  const [esportesDisponiveis, setEsportesDisponiveis] = useState([]);
 
   useEffect(() => {
     async function fetchQuadras() {
@@ -96,6 +96,25 @@ export default function SearchResult() {
     }
     fetchQuadras();
   }, [filtroEsporte, filtroCidade, filtroData, filtroHorario]);
+
+  useEffect(() => {
+    async function fetchEsportes() {
+      try {
+        const response = await getEsportes();
+        const data = response.data;
+        const lista = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.esportes)
+          ? data.esportes
+          : [];
+        setEsportesDisponiveis(lista);
+      } catch (error) {
+        setEsportesDisponiveis([]);
+      }
+    }
+
+    fetchEsportes();
+  }, []);
 
   const displayedQuadras = useMemo(() => {
     if (!searchText.trim()) return quadras;
@@ -246,16 +265,16 @@ export default function SearchResult() {
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalEsporte(false)} />
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Selecione o esporte</Text>
-            {ESPORTES.map((esporte) => (
+            {esportesDisponiveis.map((esporte) => (
               <TouchableOpacity
-                key={esporte}
-                style={[styles.modalOption, filtroEsporte === esporte && styles.modalOptionActive]}
-                onPress={() => { setFiltroEsporte(esporte); setModalEsporte(false); }}
+                key={String(esporte.id)}
+                style={[styles.modalOption, filtroEsporte === esporte.nome && styles.modalOptionActive]}
+                onPress={() => { setFiltroEsporte(esporte.nome); setModalEsporte(false); }}
               >
-                <Text style={[styles.modalOptionText, filtroEsporte === esporte && styles.modalOptionTextActive]}>
-                  {esporte}
+                <Text style={[styles.modalOptionText, filtroEsporte === esporte.nome && styles.modalOptionTextActive]}>
+                  {esporte.nome}
                 </Text>
-                {filtroEsporte === esporte && <Ionicons name="checkmark" size={18} color={COLORS.primary} />}
+                {filtroEsporte === esporte.nome && <Ionicons name="checkmark" size={18} color={COLORS.primary} />}
               </TouchableOpacity>
             ))}
           </View>

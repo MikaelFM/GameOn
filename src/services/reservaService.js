@@ -86,6 +86,20 @@ export async function getClientesByLocador(locadorId) {
   return api.get(`/reservas/locador/${locadorId}/clientes`);
 }
 
+export async function getBloqueiosLocador() {
+  return api.get("/bloqueios");
+}
+
+export async function bloquearLocatario(locatarioId) {
+  ensureId(locatarioId, "locatarioId");
+  return api.post(`/bloqueios/${locatarioId}`);
+}
+
+export async function desbloquearLocatario(locatarioId) {
+  ensureId(locatarioId, "locatarioId");
+  return api.delete(`/bloqueios/${locatarioId}`);
+}
+
 export async function getHistoricoLocador() {
   return api.get("/reservas/locador/historico");
 }

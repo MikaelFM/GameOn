@@ -56,6 +56,13 @@ export default function OwnerHome() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Suas quadras</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate("QuadraForm")}
+          >
+            <Feather name="plus" size={16} color="#fff" />
+            <Text style={styles.addButtonText}>Cadastrar</Text>
+          </TouchableOpacity>
         </View>
 
         {loading ? (
@@ -77,7 +84,7 @@ export default function OwnerHome() {
                 </View>
                 <TouchableOpacity
                   style={styles.editButton}
-                  onPress={() => navigation.navigate("EditQuadra", { quadra })}
+                  onPress={() => navigation.navigate("QuadraForm", { quadra })}
                 >
                   <Feather name="edit-2" size={14} color={COLORS.primary} />
                   <Text style={styles.editButtonText}>Editar</Text>
@@ -116,12 +123,29 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: COLORS.textMain,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
   },
   quadraWrapper: {
     marginBottom: 20,

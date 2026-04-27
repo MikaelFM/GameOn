@@ -49,6 +49,10 @@ export async function getQuadraById(id) {
 	return api.get(`/quadras/${id}`);
 }
 
+export async function getEsportes() {
+	return api.get("/esportes");
+}
+
 export async function updateQuadra(id, data) {
 	ensureId(id, "id");
 	return api.put(`/quadras/${id}`, data);
