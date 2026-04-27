@@ -1,14 +1,17 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Feather } from "@expo/vector-icons";
 
 import OwnerHome from "../pages/OwnerPages/OwnerHome/index.js";
 import OwnerSchedules from "../pages/OwnerPages/OwnerSchedules/index.js";
 import OwnerClients from "../pages/OwnerPages/OwnerClients/index.js";
 import OwnerProfile from "../pages/Profile";
+import EditQuadra from "../pages/OwnerPages/EditQuadra/index.js";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
-export default function OwnerTabRoutes() {
+function OwnerTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -26,7 +29,7 @@ export default function OwnerTabRoutes() {
         component={OwnerHome}
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="home" size={size} color={color} />
           ),
         }}
@@ -36,7 +39,7 @@ export default function OwnerTabRoutes() {
         component={OwnerSchedules}
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="calendar" size={size} color={color} />
           ),
         }}
@@ -46,7 +49,7 @@ export default function OwnerTabRoutes() {
         component={OwnerClients}
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="clipboard" size={size} color={color} />
           ),
         }}
@@ -56,11 +59,20 @@ export default function OwnerTabRoutes() {
         component={OwnerProfile}
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({ color, size }) => (
             <Feather name="user" size={size} color={color} />
           ),
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+export default function OwnerTabRoutes() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="tabs" component={OwnerTabs} />
+      <Stack.Screen name="EditQuadra" component={EditQuadra} />
+    </Stack.Navigator>
   );
 }

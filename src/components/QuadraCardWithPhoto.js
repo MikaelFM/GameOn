@@ -1,13 +1,15 @@
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
+import { getQuadraImageUri } from '../services/quadraService';
 
 export const QuadraCardWithPhoto = ({ quadra, onPress }) => {
   const preco = quadra.valorPorHora ? `R$ ${quadra.valorPorHora}/h` : 'Consultar';
+  const imageUri = getQuadraImageUri(quadra);
 
   return (
     <TouchableOpacity style={styles.quadraCard} onPress={onPress}>
-      <Image source={quadra.imagem ? { uri: quadra.imagem } : null} style={styles.quadraImage} />
+      <Image source={imageUri ? { uri: imageUri } : null} style={styles.quadraImage} />
       <View style={styles.quadraInfo}>
         <View style={styles.quadraHeader}>
           <Text style={styles.quadraName}>{quadra.nome}</Text>

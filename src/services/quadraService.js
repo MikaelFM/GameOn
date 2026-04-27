@@ -1,4 +1,9 @@
-import { api } from "./api";
+import { api, BASE_URL } from "./api";
+
+export function getQuadraImageUri(quadra) {
+	if (!quadra?.imagem) return null;
+	return `${BASE_URL}${quadra.imagem}`;
+}
 
 function ensureId(id, fieldName = "id") {
 	if (id === undefined || id === null || id === "") {

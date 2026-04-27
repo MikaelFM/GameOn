@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { QuadraCardWithPhoto } from "../../../components/QuadraCardWithPhoto";
 import { COLORS } from "../../../constants/colors";
 import { AuthContext } from "../../../contexts/AuthContext";
@@ -16,6 +16,7 @@ import { filtrarQuadras } from "../../../services/quadraService";
 
 export default function OwnerHome() {
   const { user } = useContext(AuthContext);
+  const navigation = useNavigation();
   const [quadras, setQuadras] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +77,7 @@ export default function OwnerHome() {
                 </View>
                 <TouchableOpacity
                   style={styles.editButton}
-                  onPress={() => console.log("Editar quadra", quadra.id)}
+                  onPress={() => navigation.navigate("EditQuadra", { quadra })}
                 >
                   <Feather name="edit-2" size={14} color={COLORS.primary} />
                   <Text style={styles.editButtonText}>Editar</Text>

@@ -1,17 +1,18 @@
 import React from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  Image, 
-  ScrollView, 
-  TouchableOpacity, 
-  SafeAreaView 
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { QuadraFeatureItem } from '../../components/QuadraFeatureItem';
 import { useNavigation } from '@react-navigation/native';
+import { getQuadraImageUri } from '../../services/quadraService';
 
 function formatAddress(quadra) {
   const parts = [quadra.endereco, quadra.cidade, quadra.estado].filter(Boolean);
@@ -29,6 +30,7 @@ function formatPrice(valor) {
 export default function QuadraDetails({ route }) {
   const navigation = useNavigation();
   const quadra = route.params.quadra;
+  const imageUri = getQuadraImageUri(quadra);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -40,7 +42,7 @@ export default function QuadraDetails({ route }) {
 
           <View style={styles.mainInfoCard}>
             <Image
-              source={quadra.imagem ? { uri: quadra.imagem } : null}
+              source={imageUri ? { uri: imageUri } : null}
               style={styles.cardImage}
             />
 

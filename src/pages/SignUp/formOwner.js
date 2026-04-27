@@ -6,10 +6,13 @@ import {
 	ScrollView,
 	KeyboardAvoidingView,
 	Platform,
+	Image,
+	TouchableOpacity,
 } from "react-native";
 
 import { useContext, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { TimePicker } from "../../components/TimePicker";
@@ -39,11 +42,35 @@ export default function Cadastro() {
 		Sab: { abertura: "08:00", fechamento: "18:00" },
 		Dom: { abertura: "08:00", fechamento: "18:00" },
 	});
+	const [imagem, setImagem] = useState(null); // { uri, base64, mimeType }
 	const [loading, setLoading] = useState(false);
 
 	const { signIn, token } = useContext(AuthContext);
 	const route = useRoute();
 	const { usuario, Ltoken } = route.params;
+
+	const handlePickImage = async () => {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			Alert.alert("Permissão necessária", "Permita o acesso à galeria para selecionar uma foto.");
+			return;
+		}
+		const result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ["images"],
+			allowsEditing: true,
+			aspect: [16, 9],
+			quality: 0.7,
+			base64: true,
+		});
+		if (!result.canceled && result.assets?.[0]) {
+			const asset = result.assets[0];
+			setImagem({
+				uri: asset.uri,
+				base64: asset.base64,
+				mimeType: asset.mimeType || "image/jpeg",
+			});
+		}
+	};
 
 	const toggleSport = (sport) => {
 		setSelectedSports((prev) =>
@@ -82,6 +109,10 @@ export default function Cadastro() {
 			estado,
 			cep,
 			horarios: horariosArray,
+			...(imagem?.base64 && {
+				imagemBlob: imagem.base64,
+				imagemMimeType: imagem.mimeType,
+			}),
 		};
 
 		try {
@@ -167,6 +198,15 @@ export default function Cadastro() {
 							onChangeText={setCep}
 							keyboardType="numeric"
 						/>
+
+						<Text style={styles.sectionLabel}>Foto da quadra</Text>
+						<TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+							{imagem ? (
+								<Image source={{ uri: imagem.uri }} style={styles.imagePreview} />
+							) : (
+								<Text style={styles.imagePickerText}>Toque para selecionar uma foto</Text>
+							)}
+						</TouchableOpacity>
 
 						<Text style={styles.sectionLabel}>Esportes disponíveis</Text>
 						<SportCheckboxGroup
@@ -278,6 +318,28 @@ const styles = StyleSheet.create({
 	diaLabel: {
 		width: 40,
 		fontWeight: "bold",
+		fontSize: 14,
+	},
+	imagePicker: {
+		width: "100%",
+		height: 160,
+		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: COLORS.border,
+		borderStyle: "dashed",
+		backgroundColor: COLORS.card,
+		justifyContent: "center",
+		alignItems: "center",
+		overflow: "hidden",
+		marginBottom: 8,
+	},
+	imagePreview: {
+		width: "100%",
+		height: "100%",
+		resizeMode: "cover",
+	},
+	imagePickerText: {
+		color: COLORS.textSub,
 		fontSize: 14,
 	},
 });

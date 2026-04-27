@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import { COLORS } from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
-import { filtrarQuadras } from "../../services/quadraService";
+import { filtrarQuadras, getQuadraImageUri } from "../../services/quadraService";
 
 const ESPORTES = ["Futebol", "Tênis", "Vôlei", "Beach Tennis", "Basquete", "Futsal"];
 const HORARIOS = ["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00",
@@ -220,7 +220,7 @@ export default function SearchResult() {
                 }
               >
                 <Image
-                  source={item.imagem ? { uri: item.imagem } : null}
+                  source={getQuadraImageUri(item) ? { uri: getQuadraImageUri(item) } : null}
                   style={styles.resultImage}
                 />
                 <View style={styles.resultInfo}>
