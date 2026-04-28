@@ -98,7 +98,8 @@ export default function Cadastro({
 
 				Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
 
-				const loginResponse = await loginLocador({
+				const loginFn = userType === "owner" ? loginLocador : loginLocatario;
+				const loginResponse = await loginFn({
 					email,
 					senha: password,
 				});
@@ -113,7 +114,6 @@ export default function Cadastro({
 						user: loginResponse.usuario,
 						token: loginResponse.token,
 					});
-					navigation.replace("home");
 				}
 			} catch (error) {
 				Alert.alert("Erro", error.message || "Erro ao cadastrar usuário.");

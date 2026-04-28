@@ -123,7 +123,6 @@ export function HistoricoModal({ visible, onClose }) {
                       </View>
                       {item.valorTotal != null && (
                         <View style={styles.infoItem}>
-                          <Feather name="dollar-sign" size={13} color={COLORS.textSub} />
                           <Text style={styles.infoText}>
                             R$ {Number(item.valorTotal).toFixed(2)}
                           </Text>

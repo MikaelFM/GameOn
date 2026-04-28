@@ -50,7 +50,8 @@ export default function OwnerCalendar() {
         setLoading(true);
         try {
             const response = await getReservasLocadorDia(selectedDate);
-            setReservas(response.data?.reservas ?? []);
+            const lista = Array.isArray(response.data?.reservas) ? response.data.reservas : [];
+            setReservas(lista.filter((reserva) => reserva?.status !== 'CANCELADO'));
         } catch (error) {
             console.error(error);
             setReservas([]);
@@ -70,9 +71,9 @@ export default function OwnerCalendar() {
             case 'AGUARDANDO_APROVACAO':
                 return { icon: 'time-outline', label: 'Pendente', color: '#D98C1E' };
             case 'RESERVADO':
-                return { icon: 'checkmark-circle-outline', label: 'Aprovado', color: COLORS.primary };
+                return { icon: 'checkmark-circle-outline', label: 'Confirmado', color: COLORS.primary };
             case 'CANCELADO':
-                return { icon: 'close-circle-outline', label: 'Reprovado', color: '#B42318' };
+                return { icon: 'close-circle-outline', label: 'Cancelado', color: '#B42318' };
             default:
                 return { icon: 'information-circle-outline', label: status, color: COLORS.textSub };
         }

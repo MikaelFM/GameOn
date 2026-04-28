@@ -470,7 +470,6 @@ export default function QuadraForm() {
 				await createQuadra(dados, tokenEfetivo);
 				if (modoSignup) {
 					signIn({ user: params.usuario, token: params.Ltoken });
-					navigation.replace("tabs");
 				} else {
 					Alert.alert("Sucesso", "Quadra cadastrada com sucesso!", [
 						{ text: "OK", onPress: () => navigation.goBack() },
@@ -698,7 +697,19 @@ export default function QuadraForm() {
 
 				<View style={styles.container_buttons}>
 					<View style={styles.buttonWrapperLeft}>
-						<Button label="Cancelar" type="cancel" onPress={() => navigation.goBack()} disabled={loading} style={styles.buttonFull} />
+						<Button
+						label="Cancelar"
+						type="cancel"
+						onPress={() => {
+							if (modoSignup) {
+								signIn({ user: params.usuario, token: params.Ltoken });
+							} else {
+								navigation.navigate("tabs");
+							}
+						}}
+						disabled={loading}
+						style={styles.buttonFull}
+					/>
 					</View>
 					<View style={styles.buttonWrapperRight}>
 						<Button label={labelBotao} onPress={handleSalvar} disabled={loading} style={styles.buttonFull} />
@@ -989,7 +1000,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		gap: 8,
 		padding: 16,
-		paddingBottom: Platform.OS === "ios" ? 34 : 16,
+		paddingBottom: Platform.OS === "ios" ? 74 : 60,
 		borderTopWidth: 1,
 		borderTopColor: COLORS.border,
 	},
