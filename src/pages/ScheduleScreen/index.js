@@ -298,6 +298,8 @@ const styles = StyleSheet.create({
   },
   dateCircleActive: {
     backgroundColor: COLORS.primary,
+    borderRadius: 17,
+    overflow: 'hidden',
   },
   dayNumber: {
     fontSize: 14,

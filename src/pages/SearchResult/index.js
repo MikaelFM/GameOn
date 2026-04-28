@@ -36,7 +36,7 @@ function formatDateLabel(iso) {
   return `${d}/${m}`;
 }
 
-export default function SearchResult() {
+export default function SearchResult({ route }) {
   const navigation = useNavigation();
   const [quadras, setQuadras] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +52,12 @@ export default function SearchResult() {
   const [modalHorario, setModalHorario] = useState(false);
   const [cidadeInput, setCidadeInput] = useState("");
   const [esportesDisponiveis, setEsportesDisponiveis] = useState([]);
+
+  useEffect(() => {
+    if (route?.params?.selectedSport) {
+      setFiltroEsporte(route.params.selectedSport);
+    }
+  }, [route?.params?.selectedSport]);
 
   useEffect(() => {
     async function fetchQuadras() {

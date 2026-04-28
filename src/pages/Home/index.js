@@ -76,14 +76,21 @@ export default function Home() {
           <TextInput
             placeholder="Buscar quadras ou clubes..."
             style={styles.searchInput}
-            onFocus={() => navigation.navigate('SearchResult')}
+            onFocus={() => navigation.navigate('search', { screen: 'Home' })}
           />
         </View>
 
         <Text style={styles.sectionTitle}>Esportes</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesList}>
           {CATEGORIAS.map((category) => (
-            <CategorySearchCard key={category.id} category={category} />
+            <CategorySearchCard
+              key={category.id}
+              category={category}
+              onPress={() => navigation.navigate('search', {
+                screen: 'Home',
+                params: { selectedSport: category.name },
+              })}
+            />
           ))}
         </ScrollView>
 
@@ -116,7 +123,7 @@ export default function Home() {
               <Text style={styles.promoSubtitle}>Que tal fazer sua primeira reserva?</Text>
               <TouchableOpacity
                 style={styles.promoButton}
-                onPress={() => navigation.navigate('SearchResult')}
+                onPress={() => navigation.navigate('search', { screen: 'Home' })}
               >
                 <Text style={styles.promoButtonText}>Reservar agora</Text>
               </TouchableOpacity>
@@ -127,7 +134,7 @@ export default function Home() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Quadras Disponíveis</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SearchResult')}>
+          <TouchableOpacity onPress={() => navigation.navigate('search', { screen: 'Home' })}>
             <Text style={styles.seeAll}>Ver todas</Text>
           </TouchableOpacity>
         </View>
@@ -141,7 +148,10 @@ export default function Home() {
             <QuadraCardWithPhoto
               key={String(quadra.id)}
               quadra={quadra}
-              onPress={() => navigation.navigate('QuadraDetails', { quadra })}
+              onPress={() => navigation.navigate('search', {
+                screen: 'QuadraDetails',
+                params: { quadra },
+              })}
             />
           ))
         )}

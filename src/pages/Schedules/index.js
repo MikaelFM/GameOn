@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { COLORS } from "../../constants/colors";
 import ScheduleCard from "../../components/ScheduleCard";
+import ReservaDetailsModal from '../../components/ReservaDetailsModal';
 import { listReservas, cancelReserva } from "../../services/reservaService";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -33,6 +34,9 @@ function mapReserva(reserva) {
 		location: reserva.quadra?.esporte ?? '',
 		date: formatDate(reserva.dataInicio),
 		time: formatTime(reserva.dataInicio),
+		status: reserva.status,
+		codigoSeguranca: reserva.codigoSeguranca ?? null,
+		raw: reserva,
 	};
 }
 
@@ -43,6 +47,8 @@ export default function Schedules() {
 	const [loading, setLoading] = useState(true);
 	const [erro, setErro] = useState(null);
 	const [cancellingId, setCancellingId] = useState(null);
+	const [modalVisible, setModalVisible] = useState(false);
+	const [selectedReserva, setSelectedReserva] = useState(null);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -51,10 +57,14 @@ export default function Schedules() {
 			async function fetchReservas() {
 				try {
 					const response = await listReservas();
-					const todas = (response.data ?? []).filter(r => r.status === 'RESERVADO');
+					const todas = (response.data ?? []);
 					const now = new Date();
-					setUpcoming(todas.filter(r => new Date(r.dataFim) >= now).map(mapReserva));
-					setCompleted(todas.filter(r => new Date(r.dataFim) < now).map(mapReserva));
+
+					const futuras = todas.filter(r => ['RESERVADO','AGUARDANDO_APROVACAO'].includes(r.status));
+					setUpcoming(futuras.filter(r => new Date(r.dataFim) >= now).map(mapReserva));
+
+					const concluidas = todas.filter(r => r.status === 'RESERVADO' && new Date(r.dataFim) < now);
+					setCompleted(concluidas.map(mapReserva));
 				} catch (e) {
 					setErro(e.message || 'Erro ao carregar reservas');
 				} finally {
@@ -99,6 +109,7 @@ export default function Schedules() {
 						</Text>
 					</TouchableOpacity>
 
+
 					<TouchableOpacity
 						style={[styles.tab, activeTab === "completed" && styles.activeTab]}
 						onPress={() => setActiveTab("completed")}
@@ -128,6 +139,7 @@ export default function Schedules() {
 								isCompleted={activeTab === "completed"}
 								onCancel={handleCancel}
 								cancelling={cancellingId === item.id}
+								onDetails={(reserva) => { setSelectedReserva(reserva); setModalVisible(true); }}
 							/>
 						)}
 						contentContainerStyle={styles.listContent}
@@ -138,6 +150,23 @@ export default function Schedules() {
 					/>
 				)}
 			</View>
+
+				<ReservaDetailsModal visible={modalVisible} reserva={selectedReserva} onClose={() => setModalVisible(false)} onCancel={async (id) => {
+					try {
+						await cancelReserva(id);
+						setModalVisible(false);
+						// refresh list
+						const response = await listReservas();
+						const todas = (response.data ?? []);
+						const now = new Date();
+						const futuras = todas.filter(r => ['RESERVADO','AGUARDANDO_APROVACAO'].includes(r.status));
+						setUpcoming(futuras.filter(r => new Date(r.dataFim) >= now).map(mapReserva));
+						const concluidas = todas.filter(r => r.status === 'RESERVADO' && new Date(r.dataFim) < now);
+						setCompleted(concluidas.map(mapReserva));
+					} catch (e) {
+						// ignore
+					}
+				}} />
 		</SafeAreaView>
 	);
 }

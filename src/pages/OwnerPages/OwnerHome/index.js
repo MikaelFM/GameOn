@@ -12,7 +12,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { QuadraCardWithPhoto } from "../../../components/QuadraCardWithPhoto";
 import { COLORS } from "../../../constants/colors";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { filtrarQuadras } from "../../../services/quadraService";
+import { deleteQuadra, filtrarQuadras } from "../../../services/quadraService";
 
 export default function OwnerHome() {
   const { user } = useContext(AuthContext);
@@ -44,6 +44,28 @@ export default function OwnerHome() {
 
   const primeiroNome = user?.nome?.split(" ")[0] ?? "Proprietário";
 
+  function confirmarExclusao(quadra) {
+    Alert.alert(
+      "Excluir quadra",
+      `Deseja excluir ${quadra.nome}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteQuadra(quadra.id);
+              setQuadras((prev) => prev.filter((item) => item.id !== quadra.id));
+            } catch (error) {
+              Alert.alert("Erro", error.message || "Não foi possível excluir a quadra.");
+            }
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -71,26 +93,29 @@ export default function OwnerHome() {
           <Text style={styles.emptyText}>Nenhuma quadra cadastrada ainda.</Text>
         ) : (
           quadras.map((quadra) => (
-            <View key={String(quadra.id)} style={styles.quadraWrapper}>
-              <QuadraCardWithPhoto
-                quadra={quadra}
-                onPress={() => {}}
-              />
-              <View style={styles.quadraFooter}>
-                <View style={styles.quadraInfo}>
-                  {quadra.esporte && (
-                    <Text style={styles.quadraType}>{quadra.esporte}</Text>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => navigation.navigate("QuadraForm", { quadra })}
-                >
-                  <Feather name="edit-2" size={14} color={COLORS.primary} />
-                  <Text style={styles.editButtonText}>Editar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <QuadraCardWithPhoto
+              key={String(quadra.id)}
+              quadra={quadra}
+              actions={
+                <>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => navigation.navigate("QuadraForm", { quadra })}
+                  >
+                    <Feather name="edit-2" size={14} color={COLORS.primary} />
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmarExclusao(quadra)}
+                  >
+                    <Feather name="trash-2" size={14} color="#B42318" />
+                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </>
+              }
+            />
           ))
         )}
       </ScrollView>
@@ -147,29 +172,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-  quadraWrapper: {
-    marginBottom: 20,
-  },
-  quadraFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: 12,
-    marginTop: -12,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  quadraInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  quadraType: {
-    fontSize: 12,
-    color: COLORS.textSub,
-  },
   editButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -183,6 +185,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: COLORS.primary,
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(180,35,24,0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  deleteButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#B42318",
   },
   emptyText: {
     textAlign: "center",

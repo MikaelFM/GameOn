@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Alert, ActivityIndicator } fr
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors'
 
-const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
+const ScheduleCard = ({ item, isCompleted, onCancel, cancelling, onDetails }) => {
   function handleCancel() {
     Alert.alert(
       'Cancelar reserva',
@@ -13,6 +13,17 @@ const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
         { text: 'Sim, cancelar', style: 'destructive', onPress: () => onCancel?.(item.id) },
       ]
     );
+  }
+
+  const statusLabel = isCompleted ? 'Finalizado' : (item.status === 'AGUARDANDO_APROVACAO' ? 'Aguardando' : 'Confirmado');
+  let badgeBg = '#E8F5E9';
+  let badgeColor = COLORS.primary;
+  if (isCompleted) {
+    badgeBg = '#F1F1F1';
+    badgeColor = '#666';
+  } else if (item.status === 'AGUARDANDO_APROVACAO') {
+    badgeBg = '#FFF4E5';
+    badgeColor = '#FB8C00';
   }
 
   return (
@@ -30,13 +41,13 @@ const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
         </View>
         <View style={[
           styles.statusBadge,
-          { backgroundColor: isCompleted ? '#F1F1F1' : '#E8F5E9' }
+          { backgroundColor: badgeBg }
         ]}>
           <Text style={[
             styles.statusText,
-            { color: isCompleted ? '#666' : COLORS.primary }
+            { color: badgeColor }
           ]}>
-            {isCompleted ? 'Finalizado' : 'Confirmado'}
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -63,7 +74,7 @@ const ScheduleCard = ({ item, isCompleted, onCancel, cancelling }) => {
               : <Text style={styles.cancelText}>Cancelar</Text>
             }
           </TouchableOpacity>
-          <TouchableOpacity style={styles.detailsButton}>
+          <TouchableOpacity style={styles.detailsButton} onPress={() => onDetails?.(item.raw ?? item)}>
             <Text style={styles.detailsText}>Ver Detalhes</Text>
           </TouchableOpacity>
         </View>

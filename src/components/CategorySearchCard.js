@@ -2,9 +2,9 @@ import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 
-export default function CategorySearchCard({ category }) {
+export default function CategorySearchCard({ category, onPress }) {
   return (
-    <TouchableOpacity style={styles.categoryCard}>
+    <TouchableOpacity style={styles.categoryCard} onPress={onPress} activeOpacity={0.85}>
       <Ionicons name={category.icon} size={24} color="#2E7D32" />
       <Text style={styles.categoryText}>{category.name}</Text>
     </TouchableOpacity>

@@ -3,13 +3,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { getQuadraImageUri } from '../services/quadraService';
 
-export const QuadraCardWithPhoto = ({ quadra, onPress }) => {
+export const QuadraCardWithPhoto = ({ quadra, onPress, actions, footerLeftContent, footerRightContent }) => {
   const preco = quadra.valorPorHora ? `R$ ${quadra.valorPorHora}/h` : 'Consultar';
   const imageUri = getQuadraImageUri(quadra);
 
+  // Wrapper para evitar repetição de código entre Touchable e View
+  const Container = onPress ? TouchableOpacity : View;
+
   return (
-    <TouchableOpacity style={styles.quadraCard} onPress={onPress}>
+    <Container 
+      style={styles.quadraCard} 
+      onPress={onPress} 
+      activeOpacity={0.85}
+    >
       <Image source={imageUri ? { uri: imageUri } : null} style={styles.quadraImage} />
+      
       <View style={styles.quadraInfo}>
         <View style={styles.quadraHeader}>
           <Text style={styles.quadraName}>{quadra.nome}</Text>
@@ -20,10 +28,22 @@ export const QuadraCardWithPhoto = ({ quadra, onPress }) => {
             </View>
           )}
         </View>
+
         {!!quadra.esporte && <Text style={styles.quadraType}>{quadra.esporte}</Text>}
-        <Text style={styles.quadraPrice}>{preco}</Text>
+
+        {/* Linha que alinha Preço e Ações/Footer */}
+        <View style={styles.priceActionRow}>
+          <View style={styles.priceContainer}>
+            <Text style={styles.quadraPrice}>{preco}</Text>
+            {footerLeftContent}
+          </View>
+
+          <View style={styles.actionsContainer}>
+            {footerRightContent || actions}
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
+    </Container>
   );
 };
 
@@ -63,15 +83,31 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: 'bold',
     fontSize: 12,
+    color: COLORS.textMain,
   },
   quadraType: {
     color: COLORS.textSub,
     marginVertical: 4,
     fontSize: 14,
   },
+  // NOVOS ESTILOS PARA ALINHAMENTO
+  priceActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end', // Alinha por baixo para caso de botões maiores
+    marginTop: 8,
+  },
+  priceContainer: {
+    flex: 1,
+  },
   quadraPrice: {
     color: COLORS.primary,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 18,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });
