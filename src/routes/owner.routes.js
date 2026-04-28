@@ -7,6 +7,7 @@ import OwnerSchedules from "../pages/OwnerPages/OwnerSchedules/index.js";
 import OwnerClients from "../pages/OwnerPages/OwnerClients/index.js";
 import OwnerProfile from "../pages/Profile";
 import QuadraForm from "../pages/OwnerPages/QuadraForm/index.js";
+import BloqueiosQuadra from "../pages/OwnerPages/BloqueiosQuadra/index.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -73,6 +74,7 @@ export default function OwnerTabRoutes() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="tabs" component={OwnerTabs} />
       <Stack.Screen name="QuadraForm" component={QuadraForm} />
+      <Stack.Screen name="BloqueiosQuadra" component={BloqueiosQuadra} />
     </Stack.Navigator>
   );
 }

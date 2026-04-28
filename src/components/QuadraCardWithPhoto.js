@@ -31,7 +31,6 @@ export const QuadraCardWithPhoto = ({ quadra, onPress, actions, footerLeftConten
 
         {!!quadra.esporte && <Text style={styles.quadraType}>{quadra.esporte}</Text>}
 
-        {/* Linha que alinha Preço e Ações/Footer */}
         <View style={styles.priceActionRow}>
           <View style={styles.priceContainer}>
             <Text style={styles.quadraPrice}>{preco}</Text>

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -102,16 +103,21 @@ export default function OwnerHome() {
                     style={styles.editButton}
                     onPress={() => navigation.navigate("QuadraForm", { quadra })}
                   >
-                    <Feather name="edit-2" size={14} color={COLORS.primary} />
-                    <Text style={styles.editButtonText}>Editar</Text>
+                    <Feather name="edit-2" size={18} color={COLORS.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.blockButton}
+                    onPress={() => navigation.navigate("BloqueiosQuadra", { quadra })}
+                  >
+                    <Feather name="lock" size={18} color="#B45309" />
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => confirmarExclusao(quadra)}
                   >
-                    <Feather name="trash-2" size={14} color="#B42318" />
-                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                    <Feather name="trash-2" size={18} color="#B42318" />
                   </TouchableOpacity>
                 </>
               }
@@ -173,32 +179,28 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(43,157,72,0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(43,157,72,0.1)",
   },
-  editButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.primary,
+  blockButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(180,83,9,0.1)",
   },
   deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(180,35,24,0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    width: 40,
+    height: 40,
     borderRadius: 20,
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#B42318",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(180,35,24,0.1)",
   },
   emptyText: {
     textAlign: "center",
