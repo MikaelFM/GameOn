@@ -104,6 +104,10 @@ export async function getHistoricoLocador() {
   return api.get("/reservas/locador/historico");
 }
 
+export async function getHistoricoLocatario() {
+  return api.get("/reservas/locatario/historico");
+}
+
 export async function getReservasByQuadra(quadraId) {
   ensureId(quadraId, "quadraId");
   return api.get(`/reservas/quadra/${quadraId}`);

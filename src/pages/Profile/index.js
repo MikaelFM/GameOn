@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   SafeAreaView,
   Modal,
   Alert,
@@ -17,28 +16,48 @@ import { Button } from "../../components/Button";
 import { AuthContext } from "../../contexts/AuthContext";
 import Cadastro from "../SignUp/formUser";
 import { logoutUser } from "../../services/loginService";
+import { TermosDeUsoModal } from "../../components/TermosDeUsoModal";
+import { HistoricoModal } from "../../components/HistoricoModal";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [termosVisible, setTermosVisible] = useState(false);
+  const [historicoVisible, setHistoricoVisible] = useState(false);
   const { user, token, signOut } = useContext(AuthContext);
 
-  const handleEditPress = () => {
-    setEditModalVisible(true);
-  };
-  const handleCloseModal = () => {
-    setEditModalVisible(false);
-  };
+  const handleEditPress = () => setEditModalVisible(true);
+  const handleCloseModal = () => setEditModalVisible(false);
 
-  const handleSair = async () => {
-    try {
-      await logoutUser({ id: user?.id, token });
-    } catch (error) {
-      Alert.alert("Aviso", error?.message || "Falha ao comunicar logout com servidor.");
-    } finally {
-      await signOut();
-    }
+  function getIniciais(nome) {
+    if (!nome) return "?";
+    const partes = nome.trim().split(/\s+/);
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  }
+
+  const handleSair = () => {
+    Alert.alert(
+      "Sair",
+      "Deseja mesmo sair da sua conta?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logoutUser({ id: user?.id, token });
+            } catch (error) {
+              Alert.alert("Aviso", error?.message || "Falha ao comunicar logout com servidor.");
+            } finally {
+              await signOut();
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -51,19 +70,13 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.profileHeader}>
-          <Image
-            source={{
-              uri: "https://avatar.iran.liara.run/public/boy?username=Fulano",
-            }}
-            style={styles.avatar}
-          />
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{getIniciais(user?.nome)}</Text>
+          </View>
           <View style={styles.infoContainer}>
             <Text style={styles.userName}>{user?.nome ?? "—"}</Text>
             <Text style={styles.userEmail}>{user?.email ?? "—"}</Text>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEditPress}
-            >
+            <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
               <Text style={styles.editButtonText}>Editar Perfil</Text>
             </TouchableOpacity>
           </View>
@@ -75,17 +88,22 @@ export default function ProfileScreen() {
           <ProfileMenuOption
             icon="time-outline"
             title="Histórico"
-            onPress={() => {}}
+            onPress={() => setHistoricoVisible(true)}
           />
           <ProfileMenuOption
             icon="document-text-outline"
             title="Termos de Uso"
-            onPress={() => {}}
+            onPress={() => setTermosVisible(true)}
           />
           <ProfileMenuOption
             icon="help-circle-outline"
             title="Ajuda"
-            onPress={() => {}}
+            onPress={() =>
+              Alert.alert(
+                "Ajuda",
+                "Para dúvidas, entre em contato com:\n\ngameon.if@gmail.com"
+              )
+            }
           />
           <ProfileMenuOption
             icon="log-out-outline"
@@ -95,6 +113,7 @@ export default function ProfileScreen() {
           />
         </View>
       </View>
+
       <Modal
         visible={editModalVisible}
         animationType="slide"
@@ -103,6 +122,16 @@ export default function ProfileScreen() {
       >
         <Cadastro isEditing userData={userData} onClose={handleCloseModal} />
       </Modal>
+
+      <HistoricoModal
+        visible={historicoVisible}
+        onClose={() => setHistoricoVisible(false)}
+      />
+
+      <TermosDeUsoModal
+        visible={termosVisible}
+        onClose={() => setTermosVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -132,8 +161,15 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: "rgba(46,125,50,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: COLORS.primary,
+    letterSpacing: 1,
   },
   infoContainer: {
     marginLeft: 15,
