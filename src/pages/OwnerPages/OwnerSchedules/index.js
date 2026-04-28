@@ -186,24 +186,26 @@ export default function OwnerCalendar() {
                                                 </View>
 
                                                 <View style={styles.cardActions}>
-                                                    {item.status === 'AGUARDANDO_APROVACAO' && (
-                                                        <View style={styles.actionRow}>
-                                                            <TouchableOpacity
-                                                                style={[styles.actionButton, styles.approveButton]}
-                                                                onPress={() => handleDecisaoReserva(item, 'RESERVADO')}
-                                                                disabled={actionLoading}
-                                                            >
-                                                                <Ionicons name="checkmark" size={22} color="#2B9D48" />
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                style={[styles.actionButton, styles.rejectButton]}
-                                                                onPress={() => handleDecisaoReserva(item, 'CANCELADO')}
-                                                                disabled={actionLoading}
-                                                            >
-                                                                <Ionicons name="close" size={22} color="#B42318" />
-                                                            </TouchableOpacity>
-                                                        </View>
-                                                    )}
+													<View>
+														{item.status === 'AGUARDANDO_APROVACAO' && (
+															<View style={styles.actionRow}>
+																<TouchableOpacity
+																	style={[styles.actionButton, styles.approveButton]}
+																	onPress={() => handleDecisaoReserva(item, 'RESERVADO')}
+																	disabled={actionLoading}
+																>
+																	<Ionicons name="checkmark" size={22} color="#2B9D48" />
+																</TouchableOpacity>
+																<TouchableOpacity
+																	style={[styles.actionButton, styles.rejectButton]}
+																	onPress={() => handleDecisaoReserva(item, 'CANCELADO')}
+																	disabled={actionLoading}
+																>
+																	<Ionicons name="close" size={22} color="#B42318" />
+																</TouchableOpacity>
+															</View>
+														)}
+													</View>
                                                     <TouchableOpacity
                                                         style={styles.detailsButton}
                                                         onPress={() => {
@@ -342,7 +344,7 @@ const styles = StyleSheet.create({
         borderColor: "#F2B8B5",
     },
     detailsButton: {
-        backgroundColor: "#F4F4F4",
+        backgroundColor: "#f8f8f8",
         paddingHorizontal: 12,
         paddingVertical: 7,
         borderRadius: 8,

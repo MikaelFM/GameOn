@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { COLORS } from "../constants/colors";
 
-export const Button = ({ label, type, loading = false, disabled = false, ...rest }) => {
+export const Button = ({ label, type, loading = false, disabled = false, style, ...rest }) => {
   const isDisabled = disabled || loading;
 
   return (
@@ -9,6 +9,7 @@ export const Button = ({ label, type, loading = false, disabled = false, ...rest
       style={[
         type == "cancel" ? styles.container_cancel : styles.container,
         isDisabled ? styles.disabled : null,
+        style,
       ]}
       activeOpacity={0.6}
       disabled={isDisabled}

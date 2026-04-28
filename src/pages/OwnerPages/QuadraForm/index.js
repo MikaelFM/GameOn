@@ -10,6 +10,7 @@ import {
 	Switch,
 	TouchableOpacity,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { useContext, useEffect, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -306,113 +307,152 @@ export default function QuadraForm() {
 
 	return (
 		<KeyboardAvoidingView
-			style={{ flex: 1, marginTop: Platform.OS === "android" ? 80 : 0, marginBottom: Platform.OS === "android" ? 80 : 0 }}
+			style={styles.page}
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
 		>
-			<ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 20 }}>
-				<View style={styles.container}>
-					<View style={styles.container_inputs}>
-						<Text style={styles.titulo}>{titulo}</Text>
+			<ScrollView contentContainerStyle={styles.scrollContent}>
+				<View style={styles.header}>
+					<Text style={styles.titulo}>{titulo}</Text>
+					<Text style={styles.subtitulo}>
+						{modoEdicao
+							? "Atualize as informações da sua quadra"
+							: "Preencha os dados para cadastrar sua quadra"}
+					</Text>
+				</View>
 
-						<TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-							{imagem ? (
-								<Image source={{ uri: imagem.uri }} style={styles.imagePreview} />
-							) : (
-								<Text style={styles.imagePickerText}>Toque para selecionar uma foto</Text>
-							)}
-						</TouchableOpacity>
-
-						<Text style={styles.sectionLabel}>Dados</Text>
-						<Input placeholder="Nome da quadra" value={nome} onChangeText={setNome} />
-						<Input placeholder="Valor por hora" value={valor} onChangeText={setValor} keyboardType="numeric" />
-						<Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} />
-						<Input placeholder="Endereço" value={endereco} onChangeText={setEndereco} />
-						<Input placeholder="Cidade" value={cidade} onChangeText={setCidade} />
-						<Input placeholder="Estado" value={estado} onChangeText={setEstado} />
-						<Input placeholder="CEP" value={cep} onChangeText={setCep} keyboardType="numeric" />
-
-						<Text style={styles.sectionLabel}>Esportes disponíveis</Text>
-						<SportCheckboxGroup
-							selected={selectedSports}
-							onToggle={toggleSport}
-							options={esportesDisponiveis}
-							loading={carregandoEsportes}
-						/>
-
-						<Text style={styles.sectionLabel}>Configurações de reserva</Text>
-
-						<View style={styles.switchRow}>
-							<View style={styles.switchInfo}>
-								<Text style={styles.switchLabel}>Reservas precisam de aprovação</Text>
-								<Text style={styles.switchDesc}>
-									{requerAprovacao
-										? "Você aprova manualmente cada reserva"
-										: "Reservas são confirmadas automaticamente"}
-								</Text>
-								{modoEdicao && bloqueioAprovacao && (
-									<Text style={styles.lockNotice}>
-										Existe ao menos um agendamento aguardando aprovação. Essa configuração não pode ser alterada agora.
-									</Text>
-								)}
+				<TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+					{imagem ? (
+						<>
+							<Image source={{ uri: imagem.uri }} style={styles.imagePreview} />
+							<View style={styles.imageEditOverlay}>
+								<Ionicons name="camera" size={18} color="#fff" />
+								<Text style={styles.imageEditText}>Alterar foto</Text>
 							</View>
-							<Switch
-								value={requerAprovacao}
-								onValueChange={setRequerAprovacao}
-								disabled={modoEdicao && (bloqueioAprovacao || carregandoBloqueioAprovacao)}
-								trackColor={{ false: COLORS.border, true: COLORS.primary }}
-								thumbColor="#fff"
-							/>
+						</>
+					) : (
+						<View style={styles.imagePickerEmpty}>
+							<View style={styles.cameraIconWrapper}>
+								<Ionicons name="camera-outline" size={34} color={COLORS.primary} />
+							</View>
+							<Text style={styles.imagePickerTitle}>Foto da quadra</Text>
+							<Text style={styles.imagePickerHint}>Toque para adicionar uma imagem</Text>
 						</View>
+					)}
+				</TouchableOpacity>
 
-						<View style={styles.antecedenciaRow}>
-							<Text style={styles.switchLabel}>Antecedência mínima para cancelar (horas)</Text>
-							<Input
-								placeholder="Ex: 6"
-								value={horasAntecedencia}
-								onChangeText={setHorasAntecedencia}
-								keyboardType="numeric"
-							/>
+				<View style={styles.card}>
+					<View style={styles.sectionHeader}>
+						<View style={styles.sectionAccent} />
+						<Text style={styles.sectionLabel}>Dados da quadra</Text>
+					</View>
+					<Input placeholder="Nome da quadra" value={nome} onChangeText={setNome} />
+					<Input placeholder="Valor por hora (R$)" value={valor} onChangeText={setValor} keyboardType="numeric" />
+					<Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} />
+					<Input placeholder="Endereço" value={endereco} onChangeText={setEndereco} />
+					<Input placeholder="Cidade" value={cidade} onChangeText={setCidade} />
+					<Input placeholder="Estado" value={estado} onChangeText={setEstado} />
+					<Input placeholder="CEP" value={cep} onChangeText={setCep} keyboardType="numeric" />
+				</View>
+
+				<View style={styles.card}>
+					<View style={styles.sectionHeader}>
+						<View style={styles.sectionAccent} />
+						<Text style={styles.sectionLabel}>Esportes disponíveis</Text>
+					</View>
+					<SportCheckboxGroup
+						selected={selectedSports}
+						onToggle={toggleSport}
+						options={esportesDisponiveis}
+						loading={carregandoEsportes}
+					/>
+				</View>
+
+				<View style={styles.card}>
+					<View style={styles.sectionHeader}>
+						<View style={styles.sectionAccent} />
+						<Text style={styles.sectionLabel}>Configurações de reserva</Text>
+					</View>
+
+					<View style={styles.switchRow}>
+						<View style={styles.switchInfo}>
+							<Text style={styles.switchLabel}>Aprovação manual de reservas</Text>
 							<Text style={styles.switchDesc}>
-								Locatários só poderão cancelar com pelo menos {horasAntecedencia || "0"}h de antecedência
+								{requerAprovacao
+									? "Você aprova manualmente cada reserva"
+									: "Reservas são confirmadas automaticamente"}
 							</Text>
+							{modoEdicao && bloqueioAprovacao && (
+								<Text style={styles.lockNotice}>
+									Existe ao menos um agendamento aguardando aprovação. Essa configuração não pode ser alterada agora.
+								</Text>
+							)}
 						</View>
+						<Switch
+							value={requerAprovacao}
+							onValueChange={setRequerAprovacao}
+							disabled={modoEdicao && (bloqueioAprovacao || carregandoBloqueioAprovacao)}
+							trackColor={{ false: COLORS.border, true: COLORS.primary }}
+							thumbColor="#fff"
+						/>
+					</View>
 
-						<Text style={styles.sectionLabel}>Dias e horários de funcionamento</Text>
-						<View style={styles.horarioHeader}>
-							<Text style={styles.diaCol} />
-							<Text style={styles.horarioColLabel}>Abertura</Text>
-							<Text style={styles.horarioColLabel}>Fechamento</Text>
-						</View>
-						{DIAS.map((dia) => {
-							const fechado = horariosPorDia[dia].abertura === FECHADO;
-							return (
-								<View key={dia} style={styles.horarioRow}>
-									<Text style={[styles.diaLabel, fechado && styles.diaInativo]}>{dia}</Text>
+					<View style={styles.antecedenciaRow}>
+						<Text style={styles.switchLabel}>Antecedência mínima para cancelar (horas)</Text>
+						<Input
+							placeholder="Ex: 6"
+							value={horasAntecedencia}
+							onChangeText={setHorasAntecedencia}
+							keyboardType="numeric"
+						/>
+						<Text style={styles.switchDesc}>
+							Locatários só poderão cancelar com pelo menos {horasAntecedencia || "0"}h de antecedência
+						</Text>
+					</View>
+				</View>
+
+				<View style={styles.card}>
+					<View style={styles.sectionHeader}>
+						<View style={styles.sectionAccent} />
+						<Text style={styles.sectionLabel}>Horários de funcionamento</Text>
+					</View>
+					<View style={styles.horarioHeader}>
+						<Text style={styles.diaCol} />
+						<Text style={styles.horarioColLabel}>Abertura</Text>
+						<Text style={styles.horarioColLabel}>Fechamento</Text>
+					</View>
+					{DIAS.map((dia) => {
+						const fechado = horariosPorDia[dia].abertura === FECHADO;
+						return (
+							<View key={dia} style={styles.horarioRow}>
+								<Text style={[styles.diaLabel, fechado && styles.diaInativo]}>{dia}</Text>
+								<TimePicker
+									showClosedOption
+									selectedValue={horariosPorDia[dia].abertura}
+									onValueChange={(val) =>
+										setHorariosPorDia((prev) => ({ ...prev, [dia]: { ...prev[dia], abertura: val } }))
+									}
+								/>
+								{fechado ? (
+									<View style={styles.fechadoPlaceholder} />
+								) : (
 									<TimePicker
-										showClosedOption
-										selectedValue={horariosPorDia[dia].abertura}
+										selectedValue={horariosPorDia[dia].fechamento}
 										onValueChange={(val) =>
-											setHorariosPorDia((prev) => ({ ...prev, [dia]: { ...prev[dia], abertura: val } }))
+											setHorariosPorDia((prev) => ({ ...prev, [dia]: { ...prev[dia], fechamento: val } }))
 										}
 									/>
-									{fechado ? (
-										<View style={styles.fechadoPlaceholder} />
-									) : (
-										<TimePicker
-											selectedValue={horariosPorDia[dia].fechamento}
-											onValueChange={(val) =>
-												setHorariosPorDia((prev) => ({ ...prev, [dia]: { ...prev[dia], fechamento: val } }))
-											}
-										/>
-									)}
-								</View>
-							);
-						})}
+								)}
+							</View>
+						);
+					})}
+				</View>
 
-						<View style={styles.container_buttons}>
-							<Button label="Cancelar" type="cancel" onPress={() => navigation.goBack()} disabled={loading} />
-							<Button label={labelBotao} onPress={handleSalvar} disabled={loading} />
-						</View>
+				<View style={styles.container_buttons}>
+					<View style={styles.buttonWrapperLeft}>
+						<Button label="Cancelar" type="cancel" onPress={() => navigation.goBack()} disabled={loading} style={styles.buttonFull} />
+					</View>
+					<View style={styles.buttonWrapperRight}>
+						<Button label={labelBotao} onPress={handleSalvar} disabled={loading} style={styles.buttonFull} />
 					</View>
 				</View>
 			</ScrollView>
@@ -421,57 +461,148 @@ export default function QuadraForm() {
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, justifyContent: "center", alignItems: "center", width: "100%" },
-	container_inputs: { width: "100%", justifyContent: "center", alignItems: "center" },
-	container_buttons: { flexDirection: "row", justifyContent: "center", gap: 10, width: "50%", marginTop: 20, marginBottom: 10 },
-	titulo: { fontSize: 28, color: COLORS.textMain, marginBottom: 16, fontWeight: "600" },
-	sectionLabel: { fontSize: 18, marginTop: 20, marginBottom: 8, fontWeight: "500", width: "100%" },
+	page: {
+		flex: 1,
+		marginTop: Platform.OS === "android" ? 80 : 0,
+		marginBottom: Platform.OS === "android" ? 80 : 0,
+	},
+	scrollContent: {
+		flexGrow: 1,
+		paddingHorizontal: 20,
+		paddingTop: 24,
+		paddingBottom: 20,
+	},
+	header: {
+		marginBottom: 20,
+	},
+	titulo: {
+		fontSize: 26,
+		color: COLORS.textMain,
+		fontWeight: "700",
+		letterSpacing: 0.2,
+	},
+	subtitulo: {
+		fontSize: 14,
+		color: COLORS.textSub,
+		marginTop: 4,
+	},
+	imagePicker: {
+		width: "100%",
+		height: 190,
+		borderRadius: 16,
+		backgroundColor: COLORS.card,
+		borderWidth: 1,
+		borderColor: COLORS.border,
+		overflow: "hidden",
+		marginBottom: 16,
+	},
+	imagePreview: { width: "100%", height: "100%", resizeMode: "cover" },
+	imageEditOverlay: {
+		position: "absolute",
+		bottom: 0,
+		left: 0,
+		right: 0,
+		backgroundColor: "rgba(0,0,0,0.45)",
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: 8,
+		gap: 6,
+	},
+	imageEditText: { color: "#fff", fontSize: 13, fontWeight: "600" },
+	imagePickerEmpty: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6 },
+	cameraIconWrapper: {
+		width: 64,
+		height: 64,
+		borderRadius: 32,
+		backgroundColor: `${COLORS.primary}1A`,
+		alignItems: "center",
+		justifyContent: "center",
+		marginBottom: 4,
+	},
+	imagePickerTitle: { fontSize: 15, fontWeight: "600", color: COLORS.textMain },
+	imagePickerHint: { fontSize: 13, color: COLORS.textSub },
+	// Cards
+	card: {
+		backgroundColor: COLORS.card,
+		borderRadius: 16,
+		paddingTop: 16,
+		paddingBottom: 10,
+		marginBottom: 16,
+		borderWidth: 1,
+		borderColor: COLORS.border,
+		width: "100%",
+		alignItems: "center",
+	},
+	sectionHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		width: "100%",
+		paddingHorizontal: 16,
+		marginBottom: 12,
+		gap: 8,
+	},
+	sectionAccent: {
+		width: 4,
+		height: 18,
+		borderRadius: 2,
+		backgroundColor: COLORS.primary,
+	},
+	sectionLabel: {
+		fontSize: 15,
+		fontWeight: "700",
+		color: COLORS.textMain,
+	},
+	// Switch Row
 	switchRow: {
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
-		width: "100%",
+		width: "92%",
 		backgroundColor: COLORS.card,
 		borderRadius: 12,
 		padding: 14,
-		marginBottom: 12,
+		marginBottom: 8,
 		borderWidth: 1,
 		borderColor: COLORS.border,
 	},
 	switchInfo: { flex: 1, marginRight: 12 },
 	switchLabel: { fontSize: 14, fontWeight: "600", color: COLORS.textMain, marginBottom: 2 },
-	switchDesc: { fontSize: 12, color: COLORS.textSub, marginTop: 4 },
+	switchDesc: { fontSize: 12, color: COLORS.textSub, marginTop: 4, lineHeight: 17 },
 	lockNotice: { fontSize: 12, color: "#B42318", marginTop: 8, lineHeight: 18 },
 	antecedenciaRow: {
-		width: "100%",
+		width: "92%",
 		backgroundColor: COLORS.card,
 		borderRadius: 12,
 		padding: 14,
-		marginBottom: 12,
+		marginBottom: 8,
 		borderWidth: 1,
 		borderColor: COLORS.border,
 		gap: 6,
 	},
-	horarioHeader: { flexDirection: "row", alignItems: "center", width: "100%", marginBottom: 4 },
+	// Horário Table
+	horarioHeader: { flexDirection: "row", alignItems: "center", width: "92%", marginBottom: 4, paddingHorizontal: 4 },
 	diaCol: { width: 40 },
-	horarioColLabel: { flex: 1, textAlign: "left", fontSize: 13, color: "#666" },
-	horarioRow: { flexDirection: "row", alignItems: "center", width: "100%", marginBottom: 8, gap: 8 },
+	horarioColLabel: { flex: 1, textAlign: "left", fontSize: 13, color: COLORS.textSub },
+	horarioRow: { flexDirection: "row", alignItems: "center", width: "92%", marginBottom: 8, gap: 8, paddingHorizontal: 4 },
 	diaLabel: { width: 40, fontWeight: "bold", fontSize: 14, color: COLORS.textMain },
 	diaInativo: { color: COLORS.textSub },
 	fechadoPlaceholder: { flex: 1 },
-	imagePicker: {
+	// Buttons
+	container_buttons: {
+		flexDirection: "row",
 		width: "100%",
-		height: 180,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: COLORS.border,
-		borderStyle: "dashed",
-		backgroundColor: COLORS.card,
-		justifyContent: "center",
-		alignItems: "center",
-		overflow: "hidden",
-		marginBottom: 4,
+		gap: 8,
+		marginTop: 8,
+		marginBottom: 16,
 	},
-	imagePreview: { width: "100%", height: "100%", resizeMode: "cover" },
-	imagePickerText: { color: COLORS.textSub, fontSize: 14 },
+	buttonWrapperLeft: {
+		flex: 1,
+	},
+	buttonWrapperRight: {
+		flex: 1,
+	},
+	buttonFull: {
+		width: "100%",
+	},
 });
