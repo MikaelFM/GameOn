@@ -9,10 +9,15 @@ import {
 	Image,
 	Switch,
 	TouchableOpacity,
+	Modal,
+	ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import * as Location from "expo-location";
+import { LeafletMap } from "../../../components/LeafletMap";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { getQuadraImageUri } from "../../../services/quadraService";
@@ -26,6 +31,38 @@ import { getReservasByQuadra } from "../../../services/reservaService";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
+
+const ESTADOS_BR = [
+	{ label: "Estado", value: "" },
+	{ label: "Acre", value: "AC" }, { label: "Alagoas", value: "AL" },
+	{ label: "Amapá", value: "AP" }, { label: "Amazonas", value: "AM" },
+	{ label: "Bahia", value: "BA" }, { label: "Ceará", value: "CE" },
+	{ label: "Distrito Federal", value: "DF" }, { label: "Espírito Santo", value: "ES" },
+	{ label: "Goiás", value: "GO" }, { label: "Maranhão", value: "MA" },
+	{ label: "Mato Grosso", value: "MT" }, { label: "Mato Grosso do Sul", value: "MS" },
+	{ label: "Minas Gerais", value: "MG" }, { label: "Pará", value: "PA" },
+	{ label: "Paraíba", value: "PB" }, { label: "Paraná", value: "PR" },
+	{ label: "Pernambuco", value: "PE" }, { label: "Piauí", value: "PI" },
+	{ label: "Rio de Janeiro", value: "RJ" }, { label: "Rio Grande do Norte", value: "RN" },
+	{ label: "Rio Grande do Sul", value: "RS" }, { label: "Rondônia", value: "RO" },
+	{ label: "Roraima", value: "RR" }, { label: "Santa Catarina", value: "SC" },
+	{ label: "São Paulo", value: "SP" }, { label: "Sergipe", value: "SE" },
+	{ label: "Tocantins", value: "TO" },
+];
+
+const NOME_PARA_UF = {
+	"Acre":"AC","Alagoas":"AL","Amapá":"AP","Amazonas":"AM","Bahia":"BA","Ceará":"CE",
+	"Distrito Federal":"DF","Espírito Santo":"ES","Goiás":"GO","Maranhão":"MA",
+	"Mato Grosso":"MT","Mato Grosso do Sul":"MS","Minas Gerais":"MG","Pará":"PA",
+	"Paraíba":"PB","Paraná":"PR","Pernambuco":"PE","Piauí":"PI","Rio de Janeiro":"RJ",
+	"Rio Grande do Norte":"RN","Rio Grande do Sul":"RS","Rondônia":"RO","Roraima":"RR",
+	"Santa Catarina":"SC","São Paulo":"SP","Sergipe":"SE","Tocantins":"TO",
+};
+
+function maskCep(value) {
+	const digits = value.replace(/\D/g, "").slice(0, 8);
+	return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+}
 
 function horariosToMap(horarios = [], modoEdicao = false) {
 	const valorDefault = modoEdicao ? FECHADO : "08:00";
@@ -82,7 +119,6 @@ export default function QuadraForm() {
 	const { params = {} } = useRoute();
 	const { user, token: tokenCtx, signIn } = useContext(AuthContext);
 
-	// Detecta o modo pela presença dos params
 	const quadraExistente = params.quadra ?? null;
 	const modoEdicao = !!quadraExistente;
 	const modoSignup = !!params.Ltoken;
@@ -100,7 +136,7 @@ export default function QuadraForm() {
 	const [endereco, setEndereco] = useState(q.endereco ?? "");
 	const [cidade, setCidade] = useState(q.cidade ?? "");
 	const [estado, setEstado] = useState(q.estado ?? "");
-	const [cep, setCep] = useState(q.cep ?? "");
+	const [cep, setCep] = useState(q.cep ? maskCep(q.cep) : "");
 	const [horariosPorDia, setHorariosPorDia] = useState(
 		horariosToMap(q.horarios, modoEdicao)
 	);
@@ -115,6 +151,20 @@ export default function QuadraForm() {
 		existingUri ? { uri: existingUri, base64: null, mimeType: null } : null
 	);
 	const [loading, setLoading] = useState(false);
+
+	const [latitude, setLatitude] = useState(q.latitude ?? null);
+	const [longitude, setLongitude] = useState(q.longitude ?? null);
+	const [mapModalVisible, setMapModalVisible] = useState(false);
+	const [tempCoords, setTempCoords] = useState(null);
+	const [initialMapCoords, setInitialMapCoords] = useState(null);
+	const [geocodingStatus, setGeocodingStatus] = useState("idle");
+	const [cidades, setCidades] = useState([]);
+	const [loadingCidades, setLoadingCidades] = useState(false);
+	const geocodeTimer = useRef(null);
+	const skipGeocodeRef = useRef(false);
+	const cepUserChangedRef = useRef(false);
+	const geocodeInitialRef = useRef(modoEdicao);
+	const estadoUserChangedRef = useRef(false);
 
 	useEffect(() => {
 		let ativo = true;
@@ -197,12 +247,146 @@ export default function QuadraForm() {
 		}
 	}, [q.id, q.esporteIds, q.esportes, q.esporte, esportesDisponiveis]);
 
+	useEffect(() => {
+		if (geocodeInitialRef.current) { geocodeInitialRef.current = false; return; }
+		if (!cidade && !cep) return;
+		if (skipGeocodeRef.current) {
+			skipGeocodeRef.current = false;
+			return;
+		}
+
+		clearTimeout(geocodeTimer.current);
+		setGeocodingStatus("loading");
+
+		geocodeTimer.current = setTimeout(async () => {
+			const query = [endereco, cidade, estado, cep, "Brasil"].filter(Boolean).join(", ");
+			try {
+				const res = await fetch(
+					`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=br`,
+					{ headers: { "User-Agent": "GameOnApp/1.0" } }
+				);
+				const data = await res.json();
+				if (data?.length > 0) {
+					setLatitude(parseFloat(data[0].lat));
+					setLongitude(parseFloat(data[0].lon));
+					setGeocodingStatus("found");
+				} else {
+					setGeocodingStatus("not_found");
+				}
+			} catch {
+				setGeocodingStatus("idle");
+			}
+		}, 1500);
+
+		return () => clearTimeout(geocodeTimer.current);
+	}, [endereco, cidade, estado, cep]);
+
+	useEffect(() => {
+		if (!cepUserChangedRef.current) return;
+		const cleaned = cep.replace(/\D/g, "");
+		if (cleaned.length !== 8) return;
+		fetch(`https://viacep.com.br/ws/${cleaned}/json/`)
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.erro) return;
+				const partes = [data.logradouro, data.bairro].filter(Boolean);
+				if (partes.length > 0) setEndereco(partes.join(", "));
+				if (data.localidade) setCidade(data.localidade);
+				if (data.uf) setEstado(data.uf);
+			})
+			.catch(() => {});
+	}, [cep]);
+
+	useEffect(() => {
+		if (!estado) { setCidades([]); return; }
+		if (estadoUserChangedRef.current) {
+			setCidade("");
+			estadoUserChangedRef.current = false;
+		}
+		setLoadingCidades(true);
+		fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`)
+			.then((r) => r.json())
+			.then((data) => setCidades(data.map((m) => m.nome)))
+			.catch(() => setCidades([]))
+			.finally(() => setLoadingCidades(false));
+	}, [estado]);
+
 	const toggleSport = (sport) =>
 		setSelectedSports((prev) =>
 			prev.includes(Number(sport))
 				? prev.filter((s) => Number(s) !== Number(sport))
 				: [...prev, Number(sport)]
 		);
+
+	const handleCepChange = (text) => {
+		cepUserChangedRef.current = true;
+		geocodeInitialRef.current = false;
+		setCep(maskCep(text));
+	};
+
+	const handleOpenMapPicker = async () => {
+		let initialLat = latitude;
+		let initialLng = longitude;
+
+		if (initialLat === null || initialLng === null) {
+			const { status } = await Location.requestForegroundPermissionsAsync();
+			if (status === "granted") {
+				try {
+					const loc = await Location.getCurrentPositionAsync({
+						accuracy: Location.Accuracy.Balanced,
+					});
+					initialLat = loc.coords.latitude;
+					initialLng = loc.coords.longitude;
+				} catch {
+					initialLat = -15.7942;
+					initialLng = -47.8825;
+				}
+			} else {
+				initialLat = -15.7942;
+				initialLng = -47.8825;
+			}
+		}
+
+		setInitialMapCoords({ latitude: initialLat, longitude: initialLng });
+		setTempCoords({ latitude: initialLat, longitude: initialLng });
+		setMapModalVisible(true);
+	};
+
+	const handleConfirmLocation = async () => {
+		if (!tempCoords) return;
+		setLatitude(tempCoords.latitude);
+		setLongitude(tempCoords.longitude);
+		setMapModalVisible(false);
+
+		try {
+			const res = await fetch(
+				`https://nominatim.openstreetmap.org/reverse?lat=${tempCoords.latitude}&lon=${tempCoords.longitude}&format=json&accept-language=pt-BR`,
+				{ headers: { "User-Agent": "GameOnApp/1.0" } }
+			);
+			const data = await res.json();
+			if (data?.address) {
+				const a = data.address;
+
+				const enderecoNovo = [
+					a.road || a.pedestrian || a.footway,
+					a.house_number,
+					a.suburb || a.neighbourhood || a.quarter || a.city_district,
+				].filter(Boolean).join(", ");
+
+				const cidadeNova = a.city || a.town || a.village || a.municipality || a.county;
+				const cepNovo = a.postcode ? maskCep(a.postcode) : null;
+
+				skipGeocodeRef.current = true;
+				if (enderecoNovo) setEndereco(enderecoNovo);
+				if (cidadeNova) setCidade(cidadeNova);
+				if (a.state) setEstado(NOME_PARA_UF[a.state] || a.state);
+				if (cepNovo) setCep(cepNovo);
+				setGeocodingStatus("idle");
+			}
+		} catch {
+			// coordenadas salvas, endereço fica como está
+		}
+	};
 
 	const handlePickImage = async () => {
 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -263,6 +447,7 @@ export default function QuadraForm() {
 			requerAprovacao,
 			horasAntecedenciaCancelamento: horas,
 			horarios: horariosArray,
+			...(latitude !== null && longitude !== null && { latitude, longitude }),
 			...(imagem?.base64 && {
 				imagemBlob: imagem.base64,
 				imagemMimeType: imagem.mimeType,
@@ -306,6 +491,7 @@ export default function QuadraForm() {
 		: modoEdicao ? "Salvar" : "Cadastrar";
 
 	return (
+		<>
 		<KeyboardAvoidingView
 			style={styles.page}
 			behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -345,13 +531,76 @@ export default function QuadraForm() {
 						<View style={styles.sectionAccent} />
 						<Text style={styles.sectionLabel}>Dados da quadra</Text>
 					</View>
-					<Input placeholder="Nome da quadra" value={nome} onChangeText={setNome} />
-					<Input placeholder="Valor por hora (R$)" value={valor} onChangeText={setValor} keyboardType="numeric" />
-					<Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} />
-					<Input placeholder="Endereço" value={endereco} onChangeText={setEndereco} />
-					<Input placeholder="Cidade" value={cidade} onChangeText={setCidade} />
-					<Input placeholder="Estado" value={estado} onChangeText={setEstado} />
-					<Input placeholder="CEP" value={cep} onChangeText={setCep} keyboardType="numeric" />
+					<Input placeholder="Nome da quadra" value={nome} onChangeText={setNome} style={styles.fieldInput} />
+					<Input placeholder="Valor por hora (R$)" value={valor} onChangeText={setValor} keyboardType="numeric" style={styles.fieldInput} />
+					<Input placeholder="Descrição" value={descricao} onChangeText={setDescricao} style={styles.fieldInput} />
+					<Input placeholder="CEP (XXXXX-XXX)" value={cep} onChangeText={handleCepChange} keyboardType="numeric" style={styles.fieldInput} />
+					<View style={styles.pickerWrapper}>
+						<Picker
+							selectedValue={estado}
+							onValueChange={(v) => { estadoUserChangedRef.current = true; setEstado(v); }}
+							style={styles.picker}
+							itemStyle={styles.pickerItem}
+						>
+							{ESTADOS_BR.map((e) => (
+								<Picker.Item key={e.value} label={e.label} value={e.value} style={styles.pickerItem} />
+							))}
+						</Picker>
+					</View>
+					<View style={styles.pickerWrapper}>
+						{loadingCidades ? (
+							<ActivityIndicator size="small" color={COLORS.primary} style={{ padding: 15 }} />
+						) : (
+							<Picker
+								selectedValue={cidade}
+								onValueChange={setCidade}
+								style={styles.picker}
+								itemStyle={styles.pickerItem}
+								enabled={estado !== ""}
+							>
+								<Picker.Item
+									label={estado ? "Cidade" : "Selecione o estado primeiro"}
+									value=""
+									style={styles.pickerItem}
+								/>
+								{cidades.map((nome) => (
+									<Picker.Item key={nome} label={nome} value={nome} style={styles.pickerItem} />
+								))}
+							</Picker>
+						)}
+					</View>
+					<Input placeholder="Rua / Avenida, número, Bairro" value={endereco} onChangeText={setEndereco} style={styles.fieldInput} />
+
+					{geocodingStatus === "loading" && (
+						<View style={styles.geocodeStatus}>
+							<Ionicons name="search-outline" size={14} color={COLORS.textSub} />
+							<Text style={styles.geocodeStatusText}>Buscando localização...</Text>
+						</View>
+					)}
+					{geocodingStatus === "not_found" && (
+						<View style={styles.geocodeStatus}>
+							<Ionicons name="alert-circle-outline" size={14} color="#B42318" />
+							<Text style={[styles.geocodeStatusText, { color: "#B42318" }]}>Endereço não encontrado — selecione no mapa</Text>
+						</View>
+					)}
+
+					{latitude !== null && longitude !== null ? (
+						<View style={styles.mapPreviewWrapper} pointerEvents="none">
+							<LeafletMap
+								key={`${latitude},${longitude}`}
+								latitude={latitude}
+								longitude={longitude}
+								style={styles.mapPreview}
+							/>
+						</View>
+					) : null}
+
+					<TouchableOpacity style={styles.locationBtn} onPress={handleOpenMapPicker}>
+						<Ionicons name="map-outline" size={16} color="#fff" />
+						<Text style={styles.locationBtnText}>
+							{latitude !== null ? "Ajustar localização no mapa" : "Selecionar localização no mapa"}
+						</Text>
+					</TouchableOpacity>
 				</View>
 
 				<View style={styles.card}>
@@ -457,6 +706,43 @@ export default function QuadraForm() {
 				</View>
 			</ScrollView>
 		</KeyboardAvoidingView>
+
+		<Modal visible={mapModalVisible} animationType="slide" statusBarTranslucent>
+			<View style={styles.mapModalContainer}>
+				<View style={styles.mapModalHeader}>
+					<Text style={styles.mapModalTitle}>Localização da quadra</Text>
+					<Text style={styles.mapModalSubtitle}>
+						Toque no mapa ou arraste o marcador para definir o local
+					</Text>
+				</View>
+				{initialMapCoords && (
+					<LeafletMap
+						latitude={initialMapCoords.latitude}
+						longitude={initialMapCoords.longitude}
+						interactive
+						onLocationChange={setTempCoords}
+						style={styles.mapView}
+					/>
+				)}
+				{tempCoords && (
+					<View style={styles.coordsBar}>
+						<Ionicons name="location-sharp" size={14} color={COLORS.primary} />
+						<Text style={styles.coordsBarText}>
+							{tempCoords.latitude.toFixed(6)}, {tempCoords.longitude.toFixed(6)}
+						</Text>
+					</View>
+				)}
+				<View style={styles.mapModalFooter}>
+					<View style={{ flex: 1 }}>
+						<Button label="Cancelar" type="cancel" onPress={() => setMapModalVisible(false)} />
+					</View>
+					<View style={{ flex: 1 }}>
+						<Button label="Confirmar" onPress={handleConfirmLocation} disabled={!tempCoords} />
+					</View>
+				</View>
+			</View>
+		</Modal>
+		</>
 	);
 }
 
@@ -522,7 +808,6 @@ const styles = StyleSheet.create({
 	},
 	imagePickerTitle: { fontSize: 15, fontWeight: "600", color: COLORS.textMain },
 	imagePickerHint: { fontSize: 13, color: COLORS.textSub },
-	// Cards
 	card: {
 		backgroundColor: COLORS.card,
 		borderRadius: 16,
@@ -553,7 +838,6 @@ const styles = StyleSheet.create({
 		fontWeight: "700",
 		color: COLORS.textMain,
 	},
-	// Switch Row
 	switchRow: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -580,7 +864,6 @@ const styles = StyleSheet.create({
 		borderColor: COLORS.border,
 		gap: 6,
 	},
-	// Horário Table
 	horarioHeader: { flexDirection: "row", alignItems: "center", width: "92%", marginBottom: 4, paddingHorizontal: 4 },
 	diaCol: { width: 40 },
 	horarioColLabel: { flex: 1, textAlign: "left", fontSize: 13, color: COLORS.textSub },
@@ -588,7 +871,6 @@ const styles = StyleSheet.create({
 	diaLabel: { width: 40, fontWeight: "bold", fontSize: 14, color: COLORS.textMain },
 	diaInativo: { color: COLORS.textSub },
 	fechadoPlaceholder: { flex: 1 },
-	// Buttons
 	container_buttons: {
 		flexDirection: "row",
 		width: "100%",
@@ -604,5 +886,111 @@ const styles = StyleSheet.create({
 	},
 	buttonFull: {
 		width: "100%",
+	},
+	fieldInput: {
+		container: { width: "92%" },
+	},
+	pickerWrapper: {
+		width: "92%",
+		borderWidth: 1,
+		borderColor: "#8d8d8d",
+		borderRadius: 10,
+		marginVertical: 6,
+		overflow: "hidden",
+		paddingHorizontal: 8,
+	},
+	picker: {
+		width: "100%",
+		color: "#000",
+		fontSize: 14,
+	},
+	pickerItem: {
+		fontSize: 14,
+		color: "#000",
+	},
+	geocodeStatus: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 6,
+		width: "92%",
+		marginBottom: 6,
+	},
+	geocodeStatusText: {
+		fontSize: 12,
+		color: COLORS.textSub,
+	},
+	mapPreviewWrapper: {
+		width: "92%",
+		height: 150,
+		borderRadius: 10,
+		overflow: "hidden",
+		marginBottom: 8,
+		borderWidth: 1,
+		borderColor: COLORS.border,
+	},
+	mapPreview: {
+		flex: 1,
+	},
+	locationBtn: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		gap: 6,
+		width: "92%",
+		backgroundColor: COLORS.primary,
+		borderRadius: 10,
+		paddingVertical: 11,
+		marginBottom: 8,
+	},
+	locationBtnText: {
+		color: "#fff",
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	mapModalContainer: {
+		flex: 1,
+		backgroundColor: "#fff",
+	},
+	mapModalHeader: {
+		padding: 16,
+		paddingTop: Platform.OS === "android" ? 44 : 60,
+		borderBottomWidth: 1,
+		borderBottomColor: COLORS.border,
+	},
+	mapModalTitle: {
+		fontSize: 17,
+		fontWeight: "700",
+		color: COLORS.textMain,
+		marginBottom: 2,
+	},
+	mapModalSubtitle: {
+		fontSize: 13,
+		color: COLORS.textSub,
+	},
+	mapView: {
+		flex: 1,
+	},
+	coordsBar: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		gap: 6,
+		paddingVertical: 8,
+		backgroundColor: COLORS.background,
+		borderTopWidth: 1,
+		borderTopColor: COLORS.border,
+	},
+	coordsBarText: {
+		fontSize: 13,
+		color: COLORS.textMain,
+		fontWeight: "500",
+	},
+	mapModalFooter: {
+		flexDirection: "row",
+		gap: 8,
+		padding: 16,
+		paddingBottom: Platform.OS === "ios" ? 34 : 16,
+		borderTopWidth: 1,
+		borderTopColor: COLORS.border,
 	},
 });

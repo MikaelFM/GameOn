@@ -45,7 +45,6 @@ export function HistoricoModal({ visible, onClose }) {
   const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Carrega quando o modal abre
   const carregar = useCallback(async () => {
     if (!visible) return;
     setLoading(true);
@@ -63,7 +62,6 @@ export function HistoricoModal({ visible, onClose }) {
     }
   }, [visible, isLocador]);
 
-  // Dispara ao tornar visível
   React.useEffect(() => { carregar(); }, [carregar]);
 
   return (

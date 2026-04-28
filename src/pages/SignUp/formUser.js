@@ -31,8 +31,6 @@ export default function Cadastro({
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	//implementar depois a autenticação com o backend, usando o useAuth para
-	// gerenciar o estado de autenticação do usuário.
 
 	const { signIn } = useContext(AuthContext);
 
@@ -45,9 +43,9 @@ export default function Cadastro({
 
 	const handleCancel = () => {
 		if (isEditing) {
-			onClose(); // fecha modal
+			onClose();
 		} else {
-			navigation.goBack(); // volta no stack
+			navigation.goBack();
 		}
 	};
 	const handleSalvar = async () => {
@@ -62,7 +60,7 @@ export default function Cadastro({
 				await updateUsuario(userData.id, {
 					nome,
 					email,
-					senha: password, // se quiser permitir troca de senha
+					senha: password,
 					tipo: userType,
 				});
 
@@ -106,13 +104,11 @@ export default function Cadastro({
 				});
 
 				if (userType === "owner") {
-					// passa dados do login para a tela de quadra
 					navigation.navigate("formOwner", {
 						usuario: loginResponse.usuario,
 						Ltoken: loginResponse.token,
 					});
 				} else {
-					// locatário pode salvar sessão e ir para home
 					signIn({
 						user: loginResponse.usuario,
 						token: loginResponse.token,

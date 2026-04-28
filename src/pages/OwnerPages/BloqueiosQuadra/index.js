@@ -51,7 +51,6 @@ export default function BloqueiosQuadra() {
   const [motivo, setMotivo] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // iOS only — which picker is open
   const [iosPickerTarget, setIosPickerTarget] = useState(null);
 
   useFocusEffect(
@@ -249,7 +248,6 @@ export default function BloqueiosQuadra() {
         )}
       </ScrollView>
 
-      {/* Novo bloqueio modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
@@ -264,7 +262,6 @@ export default function BloqueiosQuadra() {
 
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-              {/* Date row */}
               <View style={styles.dateRow}>
                 <View style={styles.dateField}>
                   <Text style={styles.formLabel}>Data inicial</Text>
@@ -299,7 +296,6 @@ export default function BloqueiosQuadra() {
                 </View>
               </View>
 
-              {/* iOS inline pickers */}
               {Platform.OS === "ios" && iosPickerTarget !== null && (
                 <View style={styles.iosPickerContainer}>
                   <DateTimePicker
@@ -328,7 +324,6 @@ export default function BloqueiosQuadra() {
                 </View>
               )}
 
-              {/* Time row */}
               <View style={styles.timeRow}>
                 <View style={styles.timeField}>
                   <Text style={styles.formLabel}>Hora inicial</Text>
@@ -449,7 +444,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "rgba(180,35,24,0.08)",
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
@@ -486,7 +480,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     marginTop: 16,
   },
-  // Date pickers
   dateRow: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -518,7 +511,6 @@ const styles = StyleSheet.create({
     color: COLORS.border,
     fontWeight: "400",
   },
-  // iOS picker
   iosPickerContainer: {
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -539,7 +531,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.primary,
   },
-  // Time inputs
   timeRow: {
     flexDirection: "row",
     alignItems: "flex-end",

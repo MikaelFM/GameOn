@@ -155,7 +155,6 @@ export default function Schedules() {
 					try {
 						await cancelReserva(id);
 						setModalVisible(false);
-						// refresh list
 						const response = await listReservas();
 						const todas = (response.data ?? []);
 						const now = new Date();

@@ -27,7 +27,14 @@
     },
     "plugins": [
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Precisamos da sua localização para calcular a distância até as quadras.",
+          "locationWhenInUsePermission": "Precisamos da sua localização para calcular a distância até as quadras."
+        }
+      ]
     ]
   }
 }

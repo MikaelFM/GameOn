@@ -18,7 +18,6 @@ import { COLORS } from '../../constants/colors';
 import { listQuadrasComHorariosDisponiveis } from '../../services/quadraService';
 import { createReserva } from '../../services/reservaService';
 
-// 1. Configuração de Localização
 LocaleConfig.locales['pt-br'] = {
   monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
   monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
@@ -33,7 +32,6 @@ const TODAY_ISO = new Date().toISOString().split('T')[0];
 export default function ScheduleScreen({ route }) {
   const quadra = route?.params?.quadra;
 
-  // Estados
   const [selectedDate, setSelectedDate] = useState(TODAY_ISO);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [horarios, setHorarios] = useState([]);
@@ -41,7 +39,6 @@ export default function ScheduleScreen({ route }) {
   const [reservando, setReservando] = useState(false);
   const [layoutReady, setLayoutReady] = useState(false);
 
-  // Busca de horários
   const fetchHorarios = useCallback(async (date) => {
     if (!quadra?.id) return;
     setLoading(true);
@@ -61,7 +58,6 @@ export default function ScheduleScreen({ route }) {
     fetchHorarios(selectedDate);
   }, [selectedDate, fetchHorarios]);
 
-  // Ação de Reserva
   async function handleReservar() {
     if (!selectedSlot) return;
     setReservando(true);

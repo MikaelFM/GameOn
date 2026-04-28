@@ -60,6 +60,12 @@ export default function SearchResult({ route }) {
   }, [route?.params?.selectedSport]);
 
   useEffect(() => {
+    if (route?.params?.searchText) {
+      setSearchText(route.params.searchText);
+    }
+  }, [route?.params?.searchText]);
+
+  useEffect(() => {
     async function fetchQuadras() {
       setLoading(true);
       setErro(null);
@@ -265,7 +271,6 @@ export default function SearchResult({ route }) {
         )}
       </View>
 
-      {/* Modal Esporte */}
       <Modal visible={modalEsporte} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalEsporte(false)} />
@@ -287,7 +292,6 @@ export default function SearchResult({ route }) {
         </View>
       </Modal>
 
-      {/* Modal Cidade */}
       <Modal visible={modalCidade} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalCidade(false)} />
@@ -310,7 +314,6 @@ export default function SearchResult({ route }) {
         </View>
       </Modal>
 
-      {/* Modal Data */}
       <Modal visible={modalData} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalData(false)} />
@@ -333,7 +336,6 @@ export default function SearchResult({ route }) {
         </View>
       </Modal>
 
-      {/* Modal Horário */}
       <Modal visible={modalHorario} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setModalHorario(false)} />

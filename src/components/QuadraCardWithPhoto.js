@@ -3,11 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 import { getQuadraImageUri } from '../services/quadraService';
 
-export const QuadraCardWithPhoto = ({ quadra, onPress, actions, footerLeftContent, footerRightContent }) => {
+function formatarDistancia(metros) {
+  if (metros < 1000) return `${Math.round(metros)} m`;
+  return `${(metros / 1000).toFixed(1)} km`;
+}
+
+export const QuadraCardWithPhoto = ({ quadra, onPress, actions, footerLeftContent, footerRightContent, distancia }) => {
   const preco = quadra.valorPorHora ? `R$ ${quadra.valorPorHora}/h` : 'Consultar';
   const imageUri = getQuadraImageUri(quadra);
 
-  // Wrapper para evitar repetição de código entre Touchable e View
   const Container = onPress ? TouchableOpacity : View;
 
   return (
@@ -25,6 +29,12 @@ export const QuadraCardWithPhoto = ({ quadra, onPress, actions, footerLeftConten
             <View style={styles.ratingBox}>
               <Ionicons name="star" size={14} color="#FFD700" />
               <Text style={styles.ratingText}>{quadra.rating}</Text>
+            </View>
+          )}
+          {distancia != null && (
+            <View style={styles.distanceBadge}>
+              <Ionicons name="location-sharp" size={11} color={COLORS.primary} style={{ marginRight: 2 }} />
+              <Text style={styles.distanceText}>{formatarDistancia(distancia)}</Text>
             </View>
           )}
         </View>
@@ -89,11 +99,23 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     fontSize: 14,
   },
-  // NOVOS ESTILOS PARA ALINHAMENTO
+  distanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${COLORS.primary}1A`,
+    borderRadius: 20,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  distanceText: {
+    fontSize: 11,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
   priceActionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end', // Alinha por baixo para caso de botões maiores
+    alignItems: 'flex-end',
     marginTop: 8,
   },
   priceContainer: {

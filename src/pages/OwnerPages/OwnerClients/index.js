@@ -33,7 +33,6 @@ function normalizarLista(valor) {
     return [];
 }
 
-// Função ajustada para o novo formato solicitado
 function formatarPeriodoReserva(dataInicioStr, dataFimStr) {
     if (!dataInicioStr || !dataFimStr) return "--/--/---- --h às --h";
     

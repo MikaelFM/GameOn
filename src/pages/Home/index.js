@@ -1,6 +1,7 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useContext, useCallback, useState } from 'react';
+import { useContext, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { initLocation } from '../../services/locationService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { QuadraCardWithPhoto } from '../../components/QuadraCardWithPhoto';
 import CategorySearchCard from '../../components/CategorySearchCard';
@@ -8,6 +9,15 @@ import { COLORS } from '../../constants/colors';
 import { AuthContext } from '../../contexts/AuthContext';
 import { getProximaReserva } from '../../services/reservaService';
 import { listQuadras } from '../../services/quadraService';
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 const CATEGORIAS = [
   { id: '1', name: 'Futebol', icon: 'football' },
@@ -27,6 +37,9 @@ export default function Home() {
   const [proximaReserva, setProximaReserva] = useState(undefined);
   const [quadras, setQuadras] = useState([]);
   const [loadingQuadras, setLoadingQuadras] = useState(true);
+  const [userCoords, setUserCoords] = useState(null);
+  const [homeSearch, setHomeSearch] = useState('');
+  const searchInputRef = useRef(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,6 +69,23 @@ export default function Home() {
     }, [])
   );
 
+  useEffect(() => {
+    initLocation().then((coords) => { if (coords) setUserCoords(coords); });
+  }, []);
+
+  const quadrasOrdenadas = useMemo(() => {
+    if (!userCoords) return quadras;
+    return [...quadras].sort((a, b) => {
+      const temA = a.latitude != null && a.longitude != null;
+      const temB = b.latitude != null && b.longitude != null;
+      if (!temA && !temB) return 0;
+      if (!temA) return 1;
+      if (!temB) return -1;
+      return haversine(userCoords.latitude, userCoords.longitude, a.latitude, a.longitude)
+           - haversine(userCoords.latitude, userCoords.longitude, b.latitude, b.longitude);
+    });
+  }, [quadras, userCoords]);
+
   const primeiroNome = user?.nome?.split(' ')[0] ?? 'Jogador';
 
   return (
@@ -65,18 +95,24 @@ export default function Home() {
           <Text style={styles.greeting}>Olá, {primeiroNome}!</Text>
           <Text style={styles.subGreeting}>Onde vamos jogar hoje?</Text>
         </View>
-        <TouchableOpacity style={styles.profileBadge}>
-          <Ionicons name="notifications-outline" size={24} color="#000" />
-        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color="#888" />
           <TextInput
+            ref={searchInputRef}
             placeholder="Buscar quadras ou clubes..."
             style={styles.searchInput}
-            onFocus={() => navigation.navigate('search', { screen: 'Home' })}
+            value={homeSearch}
+            onChangeText={setHomeSearch}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              const q = homeSearch.trim();
+              searchInputRef.current?.blur();
+              setHomeSearch('');
+              navigation.navigate('search', { screen: 'Home', params: { searchText: q } });
+            }}
           />
         </View>
 
@@ -144,16 +180,22 @@ export default function Home() {
         ) : quadras.length === 0 ? (
           <Text style={styles.emptyText}>Nenhuma quadra disponível no momento.</Text>
         ) : (
-          quadras.map((quadra) => (
-            <QuadraCardWithPhoto
-              key={String(quadra.id)}
-              quadra={quadra}
-              onPress={() => navigation.navigate('search', {
-                screen: 'QuadraDetails',
-                params: { quadra },
-              })}
-            />
-          ))
+          quadrasOrdenadas.map((quadra) => {
+            const distancia = userCoords && quadra.latitude != null && quadra.longitude != null
+              ? haversine(userCoords.latitude, userCoords.longitude, quadra.latitude, quadra.longitude)
+              : null;
+            return (
+              <QuadraCardWithPhoto
+                key={String(quadra.id)}
+                quadra={quadra}
+                distancia={distancia}
+                onPress={() => navigation.navigate('search', {
+                  screen: 'QuadraDetails',
+                  params: { quadra },
+                })}
+              />
+            );
+          })
         )}
       </ScrollView>
     </View>

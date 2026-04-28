@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,9 +6,14 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView
+  SafeAreaView,
+  Linking,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LeafletMap } from '../../components/LeafletMap';
+import { initLocation } from '../../services/locationService';
 import { COLORS } from '../../constants/colors';
 import { QuadraFeatureItem } from '../../components/QuadraFeatureItem';
 import { useNavigation } from '@react-navigation/native';
@@ -27,10 +32,44 @@ function formatPrice(valor) {
   });
 }
 
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatarDistancia(metros) {
+  if (metros < 1000) return `${Math.round(metros)} m`;
+  return `${(metros / 1000).toFixed(1)} km`;
+}
+
 export default function QuadraDetails({ route }) {
   const navigation = useNavigation();
   const quadra = route.params.quadra;
   const imageUri = getQuadraImageUri(quadra);
+  const temLocalizacao = quadra.latitude != null && quadra.longitude != null;
+
+  const [distancia, setDistancia] = useState(null);
+  const [loadingDistancia, setLoadingDistancia] = useState(temLocalizacao);
+
+  useEffect(() => {
+    if (!temLocalizacao) return;
+    initLocation()
+      .then((coords) => {
+        if (coords) {
+          setDistancia(calcularDistancia(
+            coords.latitude, coords.longitude,
+            quadra.latitude, quadra.longitude,
+          ));
+        }
+      })
+      .finally(() => setLoadingDistancia(false));
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,7 +86,18 @@ export default function QuadraDetails({ route }) {
             />
 
             <View style={styles.headerSection}>
-              <Text style={styles.courtTitle}>{quadra.nome}</Text>
+              <View style={styles.titleRow}>
+                <Text style={styles.courtTitle}>{quadra.nome}</Text>
+                {loadingDistancia && (
+                  <ActivityIndicator size="small" color={COLORS.primary} style={styles.distanceLoader} />
+                )}
+                {!loadingDistancia && distancia !== null && (
+                  <View style={styles.distanceBadge}>
+                    <Ionicons name="location-sharp" size={12} color={COLORS.primary} style={{ marginRight: 2 }} />
+                    <Text style={styles.distanceBadgeText}>{formatarDistancia(distancia)}</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.addressText}>{formatAddress(quadra)}</Text>
             </View>
 
@@ -77,15 +127,16 @@ export default function QuadraDetails({ route }) {
               </View>
             </View>
 
-            {quadra.cidade ? (
+            {temLocalizacao && (
               <>
-                <View style={styles.divider} />
-                <View style={styles.locationFooter}>
-                  <Ionicons name="location-sharp" size={18} color={COLORS.primary} />
-                  <Text style={styles.distanceText}>{quadra.cidade}{quadra.estado ? `, ${quadra.estado}` : ""}</Text>
+                <View pointerEvents="none" style={styles.mapWrapper}>
+                  <LeafletMap
+                    latitude={quadra.latitude}
+                    longitude={quadra.longitude}
+                  />
                 </View>
               </>
-            ) : null}
+            )}
           </View>
 
           <Text style={styles.sectionLabel}>Serviços</Text>
@@ -99,7 +150,7 @@ export default function QuadraDetails({ route }) {
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.goBack()}
+              onPress={() => navigation.navigate('search', { screen: 'Home' })}
             >
               <Text style={styles.backButtonText}>Voltar</Text>
             </TouchableOpacity>
@@ -145,11 +196,34 @@ const styles = StyleSheet.create({
   headerSection: {
     padding: 15,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   courtTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.textMain,
-    marginBottom: 4,
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  distanceLoader: {
+    flexShrink: 0,
+  },
+  distanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+    backgroundColor: `${COLORS.primary}1A`,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+  },
+  distanceBadgeText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   addressText: {
     fontSize: 14,
@@ -181,25 +255,40 @@ const styles = StyleSheet.create({
   featuresList: {
     gap: 10,
   },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  featureText: {
-    fontSize: 14,
-    color: COLORS.textSub,
-  },
   locationFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    gap: 5,
+    gap: 6,
   },
-  distanceText: {
+  locationText: {
+    flex: 1,
     fontSize: 14,
     color: COLORS.textMain,
     fontWeight: '500',
+  },
+  distanceBadge: {
+    backgroundColor: `${COLORS.primary}1A`,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  distanceBadgeText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  mapWrapper: {
+    height: 180,
+    padding: 10,
+    paddingTop: 0,
+    borderRadius: 8,
+  },
+  map: {
+    flex: 1,
+    borderRadius: 8,
   },
   sectionLabel: {
     fontSize: 16,

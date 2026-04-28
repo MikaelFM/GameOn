@@ -22,9 +22,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  //implementar depois a autenticação com o backend, usando o useAuth para
-  // gerenciar o estado de autenticação do usuário.
-  // const { isLoggedIn, user } = useAuth();
 
   const { signIn } = useContext(AuthContext);
 
